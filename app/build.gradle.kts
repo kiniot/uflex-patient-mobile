@@ -1,6 +1,10 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    // Hilt
+    alias(libs.plugins.hilt)
+    // KSP
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -55,4 +59,45 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    // Navigation Compose
+    implementation(libs.androidx.navigation.runtime.ktx)
+    implementation(libs.androidx.navigation.compose)
+    // Material Icons
+    implementation(libs.androidx.compose.material.icons.extended)
+    // KSP
+    ksp(libs.hilt.compiler)
+    ksp(libs.moshi.kotlin.codegen)
+    ksp(libs.room.compiler)
+    ksp(libs.androidx.hilt.compiler)
+    // Hilt
+    implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.compose)
+    // Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.moshi)
+    // Coil
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
+    // OkHttp
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
+    // Moshi
+    implementation(libs.moshi)
+    implementation(libs.moshi.kotlin)
+    // Room
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    // DataStore
+    implementation(libs.datastore)
+    // Coroutines
+    implementation(libs.coroutines)
+    // Hilt Common
+    implementation(libs.androidx.hilt.common)
+    // WorkManager
+    implementation(libs.androidx.work.runtime.ktx)
+    // Hilt + WorkManager
+    implementation(libs.androidx.hilt.work)
+    // Compose UI Text
+    implementation(libs.androidx.compose.ui.text.google.fonts)
+    implementation(libs.androidx.compose.ui.text)
 }
