@@ -6,4 +6,6 @@ plugins {
     alias(libs.plugins.ksp) apply false
     // Hilt
     alias(libs.plugins.hilt) apply false
+    // Kotlin Serialization
+    alias(libs.plugins.kotlin.serialization) apply false
 }
