@@ -1,0 +1,16 @@
+# Ensures that all text files use LF (Unix-style) line endings in the repository
+* text=auto eol=lf
+
+# Override for specific file types to ensure correct line endings
+*.bat text eol=crlf
+
+# Ensure Gradle wrapper script keeps executable permission and correct line endings
+gradlew text eol=lf
+gradlew.bat text eol=crlf
+
+# Binary files (images, archives, etc.) should be treated as binary to prevent line ending conversions
+*.png binary
+*.jpg binary
+*.webp binary
+*.jar binary
+*.p12 binary
