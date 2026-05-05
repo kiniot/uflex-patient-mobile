@@ -5,7 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.kiniot.uflex.ui.theme.UFlexTheme
+import com.kiniot.uflex.core.designsystem.theme.UFlexTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
