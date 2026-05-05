@@ -25,6 +25,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        multiDexEnabled = true
     }
 
     buildTypes {
@@ -43,6 +45,7 @@ android {
         }
     }
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -75,7 +78,6 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     // KSP
     ksp(libs.hilt.compiler)
-    ksp(libs.moshi.kotlin.codegen)
     ksp(libs.room.compiler)
     ksp(libs.androidx.hilt.compiler)
     // Hilt
@@ -83,16 +85,12 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     // Retrofit
     implementation(libs.retrofit)
-    implementation(libs.retrofit.moshi)
     // Coil
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
     // OkHttp
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
-    // Moshi
-    implementation(libs.moshi)
-    implementation(libs.moshi.kotlin)
     // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
@@ -109,4 +107,9 @@ dependencies {
     // Compose UI Text
     implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.androidx.compose.ui.text)
+    // Serialization JSON
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.retrofit.kotlin.serialization)
+    // Desugaring
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 }
