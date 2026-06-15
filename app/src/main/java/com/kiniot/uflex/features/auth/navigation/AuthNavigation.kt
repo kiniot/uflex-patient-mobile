@@ -17,7 +17,7 @@ fun NavGraphBuilder.authGraph(navController: NavHostController) {
             SignInScreen(
                 onSignInSuccess = {
                     navController.navigate(MainGraph) {
-                        popUpTo(AuthGraph) { inclusive = true }
+                        popUpTo<SignIn> { inclusive = true }
                     }
                 },
                 onGoToSignUp = { navController.navigate(SignUp) }

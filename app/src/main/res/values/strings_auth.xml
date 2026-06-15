@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="auth_sign_in_title">Hello!\nLet’s begin your recovery</string>
+    <string name="auth_sign_in_subtitle">Enter your email and password to access your personalized clinical plan.</string>
+    <string name="auth_sign_in_email_label">EMAIL ADDRESS</string>
+    <string name="auth_sign_in_email_placeholder">you@email.com</string>
+    <string name="auth_sign_in_password_label">PASSWORD</string>
+    <string name="auth_sign_in_password_placeholder">Enter your password</string>
+    <string name="auth_sign_in_submit">Sign in</string>
+    <string name="auth_sign_in_no_account">Don’t have an account?</string>
+    <string name="auth_sign_in_go_to_sign_up">Create your account</string>
+    <string name="auth_sign_in_show_password">Show password</string>
+    <string name="auth_sign_in_hide_password">Hide password</string>
+    <string name="auth_sign_in_error_email_required">Enter your email address.</string>
+    <string name="auth_sign_in_error_email_invalid">Enter a valid email address.</string>
+    <string name="auth_sign_in_error_password_required">Enter your password.</string>
     <string name="auth_error_clinic_already_registered">The clinic is already registered.</string>
 </resources>

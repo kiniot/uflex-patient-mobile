@@ -71,6 +71,8 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    // Lifecycle Runtime Compose
+    implementation(libs.androidx.lifecycle.runtime.compose)
     // Navigation Compose
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)

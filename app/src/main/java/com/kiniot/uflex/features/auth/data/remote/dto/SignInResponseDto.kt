@@ -6,5 +6,7 @@ import kotlinx.serialization.Serializable
 data class SignInResponseDto(
     val id: String,
     val email: String,
+    val roles: List<String>,
+    val tenantId: String,
     val token: String
 )

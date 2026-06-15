@@ -1,5 +1,7 @@
 package com.kiniot.uflex.features.auth.di
 
+import com.kiniot.uflex.features.auth.data.local.datasource.AuthLocalDataSource
+import com.kiniot.uflex.features.auth.data.local.datasource.AuthLocalDataSourceImpl
 import com.kiniot.uflex.features.auth.data.remote.datasource.AuthRemoteDataSource
 import com.kiniot.uflex.features.auth.data.remote.datasource.AuthRemoteDataSourceImpl
 import com.kiniot.uflex.features.auth.data.repository.AuthRepositoryImpl
@@ -13,6 +15,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class AuthBindingsModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthLocalDataSource(
+        authLocalDataSourceImpl: AuthLocalDataSourceImpl
+    ): AuthLocalDataSource
 
     @Binds
     @Singleton
