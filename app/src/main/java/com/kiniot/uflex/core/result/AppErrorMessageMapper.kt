@@ -9,15 +9,10 @@ fun AppError.toUserMessage(): UiText {
         AppError.Unauthorized -> UiText.Resource(R.string.core_error_auth_required)
         AppError.Forbidden -> UiText.Resource(R.string.core_error_access_denied)
         AppError.BadRequest -> UiText.Resource(R.string.core_error_bad_request)
+        AppError.Conflict -> UiText.Resource(R.string.core_error_conflict)
         AppError.NotFound -> UiText.Resource(R.string.core_error_not_found)
         AppError.Server -> UiText.Resource(R.string.core_error_server)
-        is AppError.Business -> when (code) {
-            "ACCESS_DENIED" -> UiText.Resource(R.string.core_error_access_denied)
-            "AUTH_REQUIRED" -> UiText.Resource(R.string.core_error_auth_required)
-            "BAD_REQUEST" -> UiText.Resource(R.string.core_error_bad_request)
-            "CLINIC_ALREADY_REGISTERED" -> UiText.Resource(R.string.auth_error_clinic_already_registered)
-            else -> status.toFallbackMessage()
-        }
+        is AppError.Business -> status.toFallbackMessage()
 
         is AppError.Unknown -> UiText.Resource(R.string.core_error_unknown)
     }

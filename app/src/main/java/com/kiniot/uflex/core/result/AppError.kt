@@ -5,6 +5,7 @@ sealed interface AppError {
     data object Unauthorized : AppError
     data object Forbidden : AppError
     data object BadRequest : AppError
+    data object Conflict : AppError
     data object NotFound : AppError
     data object Server : AppError
     data class Business(

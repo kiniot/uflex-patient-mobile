@@ -4,9 +4,13 @@ import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kiniot.uflex.R
+import com.kiniot.uflex.core.designsystem.components.feedback.AppSnackbarMessage
+import com.kiniot.uflex.core.designsystem.components.feedback.SnackbarManager
 import com.kiniot.uflex.core.result.AppResult
-import com.kiniot.uflex.core.result.toUserMessage
 import com.kiniot.uflex.core.ui.UiText
+import com.kiniot.uflex.features.auth.presentation.shouldShowInlineInSignIn
+import com.kiniot.uflex.features.auth.presentation.toSnackbarType
+import com.kiniot.uflex.features.auth.presentation.toAuthUserMessage
 import com.kiniot.uflex.features.auth.domain.usecase.SignInUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -20,7 +24,8 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class SignInViewModel @Inject constructor(
-    private val signInUseCase: SignInUseCase
+    private val signInUseCase: SignInUseCase,
+    private val snackbarManager: SnackbarManager
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SignInUiState())
     val uiState: StateFlow<SignInUiState> = _uiState.asStateFlow()
@@ -86,10 +91,22 @@ class SignInViewModel @Inject constructor(
                 }
 
                 is AppResult.Error -> {
+                    val message = result.error.toAuthUserMessage()
+                    val shouldShowInline = result.error.shouldShowInlineInSignIn()
+
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = result.error.toUserMessage()
+                            errorMessage = if (shouldShowInline) message else null
+                        )
+                    }
+
+                    if (!shouldShowInline) {
+                        snackbarManager.showMessage(
+                            AppSnackbarMessage(
+                                message = message,
+                                type = result.error.toSnackbarType()
+                            )
                         )
                     }
                 }

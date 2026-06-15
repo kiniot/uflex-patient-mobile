@@ -14,5 +14,8 @@
     <string name="auth_sign_in_error_email_required">Ingresa tu correo electrónico.</string>
     <string name="auth_sign_in_error_email_invalid">Ingresa un correo electrónico válido.</string>
     <string name="auth_sign_in_error_password_required">Ingresa tu contraseña.</string>
+    <string name="auth_sign_in_error_invalid_credentials">El correo o la contraseña son incorrectos.</string>
+    <string name="auth_sign_in_error_user_with_email_not_found">No se encontró una cuenta con ese correo electrónico.</string>
+    <string name="auth_error_user_with_id_not_found">No se pudo encontrar al usuario.</string>
     <string name="auth_error_clinic_already_registered">La clínica ya se encuentra registrada.</string>
 </resources>
