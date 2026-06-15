@@ -1,6 +1,5 @@
 package com.kiniot.uflex.features.auth.presentation.signin
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,12 +10,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.Image
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
@@ -36,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -53,7 +55,6 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 @Composable
 fun SignInScreen(
     onSignInSuccess: () -> Unit,
-    onGoToSignUp: () -> Unit,
     viewModel: SignInViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -78,11 +79,10 @@ fun SignInScreen(
         ) {
             Spacer(modifier = Modifier.height(20.dp))
 
-            Text(
-                text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+            Image(
+                painter = painterResource(R.drawable.logo_uflex_combination_mark_original),
+                contentDescription = stringResource(R.string.app_name),
+                modifier = Modifier.sizeIn(maxWidth = 116.dp, maxHeight = 40.dp)
             )
 
             Spacer(modifier = Modifier.height(56.dp))
@@ -240,7 +240,7 @@ fun SignInScreen(
             Spacer(modifier = Modifier.height(40.dp))
 
             Text(
-                text = stringResource(R.string.auth_sign_in_no_account),
+                text = stringResource(R.string.auth_sign_in_forgot_password_prompt),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -249,11 +249,19 @@ fun SignInScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = stringResource(R.string.auth_sign_in_go_to_sign_up),
+                text = stringResource(R.string.auth_sign_in_forgot_password_action),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.clickable(onClick = onGoToSignUp)
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            Text(
+                text = stringResource(R.string.auth_sign_in_copyright),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
             )
         }
     }

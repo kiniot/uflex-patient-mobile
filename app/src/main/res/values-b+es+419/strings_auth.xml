@@ -7,8 +7,8 @@
     <string name="auth_sign_in_password_label">CONTRASEÑA</string>
     <string name="auth_sign_in_password_placeholder">Ingresa tu contraseña</string>
     <string name="auth_sign_in_submit">Ingresar</string>
-    <string name="auth_sign_in_no_account">¿No tienes una cuenta?</string>
-    <string name="auth_sign_in_go_to_sign_up">Crea tu cuenta</string>
+    <string name="auth_sign_in_forgot_password_prompt">¿Olvidaste tu contraseña?</string>
+    <string name="auth_sign_in_forgot_password_action">Recupérala aquí</string>
     <string name="auth_sign_in_show_password">Mostrar contraseña</string>
     <string name="auth_sign_in_hide_password">Ocultar contraseña</string>
     <string name="auth_sign_in_error_email_required">Ingresa tu correo electrónico.</string>
@@ -16,6 +16,7 @@
     <string name="auth_sign_in_error_password_required">Ingresa tu contraseña.</string>
     <string name="auth_sign_in_error_invalid_credentials">El correo o la contraseña son incorrectos.</string>
     <string name="auth_sign_in_error_user_with_email_not_found">No se encontró una cuenta con ese correo electrónico.</string>
+    <string name="auth_sign_in_copyright">© 2026 KinIoT. Todos los derechos reservados.</string>
     <string name="auth_error_user_with_id_not_found">No se pudo encontrar al usuario.</string>
     <string name="auth_error_clinic_already_registered">La clínica ya se encuentra registrada.</string>
 </resources>
