@@ -11,7 +11,7 @@ import com.kiniot.uflex.core.ui.UiText
 import com.kiniot.uflex.features.auth.presentation.shouldShowInlineInSignIn
 import com.kiniot.uflex.features.auth.presentation.toSnackbarType
 import com.kiniot.uflex.features.auth.presentation.toAuthUserMessage
-import com.kiniot.uflex.features.auth.domain.usecase.SignInUseCase
+import com.kiniot.uflex.features.auth.domain.usecase.SignInAndLoadPatientSessionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel
@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class SignInViewModel @Inject constructor(
-    private val signInUseCase: SignInUseCase,
+    private val signInAndLoadPatientSessionUseCase: SignInAndLoadPatientSessionUseCase,
     private val snackbarManager: SnackbarManager
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SignInUiState())
@@ -84,7 +84,12 @@ class SignInViewModel @Inject constructor(
                 )
             }
 
-            when (val result = signInUseCase(currentState.email.trim(), currentState.password)) {
+            when (
+                val result = signInAndLoadPatientSessionUseCase(
+                    currentState.email.trim(),
+                    currentState.password
+                )
+            ) {
                 is AppResult.Success -> {
                     _uiState.update { it.copy(isLoading = false) }
                     signInSuccessChannel.send(Unit)

@@ -5,5 +5,7 @@ import com.kiniot.uflex.features.auth.domain.model.User
 
 interface AuthRepository {
     suspend fun signIn(email: String, password: String): AppResult<User>
+    suspend fun savePatientId(patientId: String)
+    suspend fun clearSession()
     suspend fun hasActiveSession(): Boolean
 }

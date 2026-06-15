@@ -30,6 +30,14 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun savePatientId(patientId: String) {
+        localDataSource.savePatientId(patientId)
+    }
+
+    override suspend fun clearSession() {
+        localDataSource.clearSession()
+    }
+
     override suspend fun hasActiveSession(): Boolean {
         return localDataSource.isSessionActive()
     }

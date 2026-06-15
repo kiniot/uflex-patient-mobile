@@ -11,6 +11,10 @@ class AuthLocalDataSourceImpl @Inject constructor(
         sessionStore.saveSession(session)
     }
 
+    override suspend fun savePatientId(patientId: String) {
+        sessionStore.savePatientId(patientId)
+    }
+
     override suspend fun isSessionActive(): Boolean {
         return sessionStore.isSessionActive()
     }

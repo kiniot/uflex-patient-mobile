@@ -16,6 +16,7 @@ fun SignInResponseDto.toDomain(): User {
 fun SignInResponseDto.toLocalSession(): LocalSession {
     return LocalSession(
         userId = this.id,
+        patientId = null,
         email = this.email,
         roles = this.roles,
         tenantId = this.tenantId,

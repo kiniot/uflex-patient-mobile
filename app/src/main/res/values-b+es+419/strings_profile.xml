@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profile_error_title">No pudimos cargar tu perfil</string>
+    <string name="profile_error_generic">Inténtalo nuevamente en un momento.</string>
+    <string name="profile_retry">Reintentar</string>
+    <string name="profile_title">Perfil</string>
+    <string name="profile_back">Volver</string>
+    <string name="profile_personal_information">Información personal</string>
+    <string name="profile_clinical_information">Información clínica</string>
+    <string name="profile_edit_contact_action">Editar contacto</string>
+    <string name="profile_edit_contact_title">Editar contacto</string>
+    <string name="profile_edit_contact_back">Volver</string>
+    <string name="profile_edit_contact_description">Aquí puedes actualizar solo tu correo electrónico y tu información telefónica.</string>
+    <string name="profile_edit_contact_email">Correo electrónico</string>
+    <string name="profile_edit_contact_country_code">Código de país</string>
+    <string name="profile_edit_contact_phone_number">Número de teléfono</string>
+    <string name="profile_edit_contact_save">Guardar cambios</string>
+    <string name="profile_edit_contact_error_email_required">Ingresa tu correo electrónico.</string>
+    <string name="profile_edit_contact_error_email_invalid">Ingresa un correo electrónico válido.</string>
+    <string name="profile_edit_contact_error_country_code_required">Ingresa tu código de país.</string>
+    <string name="profile_edit_contact_error_phone_required">Ingresa tu número de teléfono.</string>
+    <string name="profile_dni">DNI</string>
+    <string name="profile_birth_date">Fecha de nacimiento</string>
+    <string name="profile_gender">Género</string>
+    <string name="profile_phone_number">Número de teléfono</string>
+    <string name="profile_medical_condition">Condición médica</string>
+    <string name="profile_status">Estado</string>
+    <string name="profile_sign_out">Cerrar sesión</string>
+    <string name="profile_gender_male">Masculino</string>
+    <string name="profile_gender_female">Femenino</string>
+    <string name="profile_gender_unknown">No especificado</string>
+    <string name="profile_status_unassigned">Sin asignar</string>
+    <string name="profile_status_in_treatment">En tratamiento</string>
+    <string name="profile_status_completed">Completado</string>
+    <string name="profile_status_discharged">De alta</string>
+    <string name="profile_status_inactive">Inactivo</string>
+    <string name="profile_status_unknown">Desconocido</string>
+</resources>
