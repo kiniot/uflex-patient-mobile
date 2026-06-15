@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_sign_in_title">¡Hola!\nComencemos tu recuperación</string>
+    <string name="auth_sign_in_subtitle">Ingresa tu correo electrónico y contraseña para acceder a tu plan clínico personalizado.</string>
+    <string name="auth_sign_in_email_label">CORREO ELECTRÓNICO</string>
+    <string name="auth_sign_in_email_placeholder">tu@email.com</string>
+    <string name="auth_sign_in_password_label">CONTRASEÑA</string>
+    <string name="auth_sign_in_password_placeholder">Ingresa tu contraseña</string>
+    <string name="auth_sign_in_submit">Ingresar</string>
+    <string name="auth_sign_in_forgot_password_prompt">¿Olvidaste tu contraseña?</string>
+    <string name="auth_sign_in_forgot_password_action">Recupérala aquí</string>
+    <string name="auth_sign_in_show_password">Mostrar contraseña</string>
+    <string name="auth_sign_in_hide_password">Ocultar contraseña</string>
+    <string name="auth_sign_in_error_email_required">Ingresa tu correo electrónico.</string>
+    <string name="auth_sign_in_error_email_invalid">Ingresa un correo electrónico válido.</string>
+    <string name="auth_sign_in_error_password_required">Ingresa tu contraseña.</string>
+    <string name="auth_sign_in_error_invalid_credentials">El correo o la contraseña son incorrectos.</string>
+    <string name="auth_sign_in_error_user_with_email_not_found">No se encontró una cuenta con ese correo electrónico.</string>
+    <string name="auth_sign_in_copyright">© 2026 KinIoT. Todos los derechos reservados.</string>
+    <string name="auth_error_user_with_id_not_found">No se pudo encontrar al usuario.</string>
+    <string name="auth_error_clinic_already_registered">La clínica ya se encuentra registrada.</string>
+</resources>

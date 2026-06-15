@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="main_tab_home">Inicio</string>
+    <string name="main_tab_devices">Dispositivos</string>
+    <string name="main_tab_exercises">Ejercicios</string>
+    <string name="main_tab_history">Historial</string>
+    <string name="main_top_bar_menu">Abrir menú</string>
+    <string name="main_top_bar_profile">Abrir perfil</string>
+    <string name="main_devices_placeholder">Dispositivos en construcción</string>
+    <string name="main_exercises_placeholder">Ejercicios en construcción</string>
+    <string name="main_history_placeholder">Historial en construcción</string>
+</resources>

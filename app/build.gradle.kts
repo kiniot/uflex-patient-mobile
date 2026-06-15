@@ -1,6 +1,12 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    // Hilt
+    alias(libs.plugins.hilt)
+    // KSP
+    alias(libs.plugins.ksp)
+    // Kotlin Serialization
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -19,10 +25,18 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        multiDexEnabled = true
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/api/v1/\"")
+            buildConfigField("Boolean", "LOG_HTTP", "true")
+        }
         release {
+            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/api/v1/\"")
+            buildConfigField("Boolean", "LOG_HTTP", "false")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -31,11 +45,13 @@ android {
         }
     }
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -55,4 +71,47 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    // Lifecycle Runtime Compose
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    // Navigation Compose
+    implementation(libs.androidx.navigation.runtime.ktx)
+    implementation(libs.androidx.navigation.compose)
+    // Material Icons
+    implementation(libs.androidx.compose.material.icons.extended)
+    // KSP
+    ksp(libs.hilt.compiler)
+    ksp(libs.room.compiler)
+    ksp(libs.androidx.hilt.compiler)
+    // Hilt
+    implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.compose)
+    // Retrofit
+    implementation(libs.retrofit)
+    // Coil
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
+    // OkHttp
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
+    // Room
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    // DataStore
+    implementation(libs.datastore)
+    // Coroutines
+    implementation(libs.coroutines)
+    // Hilt Common
+    implementation(libs.androidx.hilt.common)
+    // WorkManager
+    implementation(libs.androidx.work.runtime.ktx)
+    // Hilt + WorkManager
+    implementation(libs.androidx.hilt.work)
+    // Compose UI Text
+    implementation(libs.androidx.compose.ui.text.google.fonts)
+    implementation(libs.androidx.compose.ui.text)
+    // Serialization JSON
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.retrofit.kotlin.serialization)
+    // Desugaring
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 }
