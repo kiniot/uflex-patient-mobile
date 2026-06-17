@@ -1,4 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="home_placeholder">Inicio en construcción</string>
+    <string name="home_greeting_subtitle">Hoy es un buen día para mejorar</string>
+    <string name="home_greeting_title">Buenos días,\n%1$s</string>
+    <string name="home_weekly_progress_title">Progreso Semanal</string>
+    <string name="home_weekly_progress_description">Has completado el 75%% de tu plan de rehabilitación esta semana. ¡Sigue así!</string>
+    <string name="home_weekly_progress_badge">Excelente Ritmo</string>
+    <string name="home_progress_percentage">%1$d%%</string>
+    <string name="home_exercises_today_title">Ejercicios de hoy</string>
+    <string name="home_exercises_pending">%1$d PENDIENTES</string>
+    <string name="home_exercise_elbow_flexion">Flexión de Codo</string>
+    <string name="home_exercise_shoulder_rotation">Rotación de Hombro</string>
+    <string name="home_exercise_wrist_extension">Extensión de Muñeca</string>
+    <string name="home_exercise_detail">%1$d series • %2$d reps</string>
+    <string name="home_exercise_start">Iniciar</string>
 </resources>

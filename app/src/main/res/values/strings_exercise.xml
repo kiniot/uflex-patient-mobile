@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="exercise_back">Go back</string>
+
+    <!-- Exercise list -->
+    <string name="exercise_list_title">Today\'s Exercises</string>
+    <string name="exercise_list_subtitle">Your planned routine for today.</string>
+    <string name="exercise_list_count">%1$d exercises</string>
+    <string name="exercise_name_elbow_flexion">Elbow Flexion</string>
+    <string name="exercise_name_shoulder_rotation">Shoulder Rotation</string>
+    <string name="exercise_name_wrist_extension">Wrist Extension</string>
+    <string name="exercise_detail">%1$d sets • %2$d reps</string>
+    <string name="exercise_start">Start</string>
+
+    <!-- Prepare -->
+    <string name="exercise_prepare_badge">GET READY</string>
+    <string name="exercise_prepare_series">%1$d sets</string>
+    <string name="exercise_prepare_reps">%1$d reps</string>
+    <string name="exercise_prepare_target">Right elbow</string>
+    <string name="exercise_prepare_instructions">Place the sensor on your forearm. Perform the movement with control, without swinging your body.</string>
+    <string name="exercise_prepare_start">Start exercise</string>
+
+    <!-- Live session -->
+    <string name="exercise_session_status_good">LIVE: DETECTING MOVEMENT</string>
+    <string name="exercise_session_status_error">ALERT: INCORRECT POSTURE</string>
+    <string name="exercise_session_posture_good">Optimal range reached</string>
+    <string name="exercise_session_posture_error">Adjust your position</string>
+    <string name="exercise_session_reps_label">REPETITIONS</string>
+    <string name="exercise_session_pause">Pause</string>
+    <string name="exercise_session_resume">Resume</string>
+    <string name="exercise_session_finish">Finish</string>
+
+    <!-- Feedback -->
+    <string name="feedback_section_label">SESSION FEEDBACK</string>
+    <string name="feedback_pain_question">How much pain did you feel during the routine?</string>
+    <string name="feedback_pain_none">None</string>
+    <string name="feedback_pain_mild">Mild</string>
+    <string name="feedback_pain_moderate">Moderate</string>
+    <string name="feedback_pain_strong">Strong</string>
+    <string name="feedback_pain_intense">Intense</string>
+    <string name="feedback_slider_min">NO PAIN</string>
+    <string name="feedback_slider_max">INTENSE PAIN</string>
+    <string name="feedback_sensations_question">Any other sensations?</string>
+    <string name="feedback_sensation_fatigue">Feel fatigue</string>
+    <string name="feedback_sensation_fluid">Fluid movement</string>
+    <string name="feedback_sensation_stiffness">Stiffness</string>
+    <string name="feedback_sensation_pulses">Pulses</string>
+    <string name="feedback_comment_placeholder">Add an optional comment…</string>
+    <string name="feedback_finalize">Finish Session</string>
+</resources>

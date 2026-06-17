@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- No device -->
+    <string name="device_no_device_title">No sensor assigned</string>
+    <string name="device_no_device_description">Contact your clinic so they can assign a uFlex device to you.</string>
+
+    <!-- Device assigned (offline) -->
+    <string name="device_assigned_title">Your sensor</string>
+    <string name="device_assigned_subtitle">Found a device assigned to your account.</string>
+    <string name="device_info_serial">Serial</string>
+    <string name="device_status_offline">Offline</string>
+    <string name="device_sync_button">Sync sensor</string>
+    <string name="device_sync_cancel">Cancel</string>
+
+    <!-- Sync steps -->
+    <string name="device_step_badge">Step %1$d of %2$d</string>
+    <string name="device_step1_title">Turn on your sensor</string>
+    <string name="device_step1_description">Make sure the light blinks gently.</string>
+    <string name="device_step1_next">Next</string>
+    <string name="device_step2_title">Pairing…</string>
+    <string name="device_step2_description">We are setting up your secure connection.</string>
+    <string name="device_step2_hint">Keep your mobile device near the sensor until the process is complete.</string>
+
+    <!-- Connected -->
+    <string name="device_connected_title">Sensor Connected</string>
+    <string name="device_connected_description">Your device is ready and synced.</string>
+    <string name="device_connected_battery">%1$d%% Battery</string>
+</resources>

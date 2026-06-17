@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Sin dispositivo -->
+    <string name="device_no_device_title">Sin sensor asignado</string>
+    <string name="device_no_device_description">Contacta a tu clínica para que te asignen un dispositivo uFlex.</string>
+
+    <!-- Dispositivo asignado (sin conexión) -->
+    <string name="device_assigned_title">Tu sensor</string>
+    <string name="device_assigned_subtitle">Encontramos un dispositivo asignado a tu cuenta.</string>
+    <string name="device_info_serial">Serie</string>
+    <string name="device_status_offline">Sin conexión</string>
+    <string name="device_sync_button">Sincronizar sensor</string>
+    <string name="device_sync_cancel">Cancelar</string>
+
+    <!-- Pasos de sincronización -->
+    <string name="device_step_badge">Paso %1$d de %2$d</string>
+    <string name="device_step1_title">Enciende tu sensor</string>
+    <string name="device_step1_description">Asegúrate de que la luz parpadee suavemente.</string>
+    <string name="device_step1_next">Siguiente</string>
+    <string name="device_step2_title">Vinculando…</string>
+    <string name="device_step2_description">Estamos configurando tu conexión segura.</string>
+    <string name="device_step2_hint">Mantén tu dispositivo móvil cerca del sensor hasta que se complete el proceso.</string>
+
+    <!-- Conectado -->
+    <string name="device_connected_title">Sensor Conectado</string>
+    <string name="device_connected_description">Su dispositivo está listo y sincronizado.</string>
+    <string name="device_connected_battery">%1$d%% Batería</string>
+</resources>

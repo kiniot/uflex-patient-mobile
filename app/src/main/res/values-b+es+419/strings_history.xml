@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_title">Historial de Progreso</string>
+    <string name="history_subtitle">Seguimiento detallado de tu recuperación de rodilla.</string>
+
+    <!-- Tarjeta ROM -->
+    <string name="history_rom_title">Evolución ROM</string>
+    <string name="history_rom_active">ACTIVO</string>
+    <string name="history_rom_passive">PASIVO</string>
+
+    <!-- Estadísticas -->
+    <string name="history_adherence_value">85%</string>
+    <string name="history_adherence_label">Adherencia</string>
+    <string name="history_improvement_value">+15°</string>
+    <string name="history_improvement_label">Mejoría Total</string>
+
+    <!-- Nota del médico -->
+    <string name="history_doctor_name">Dr. Silva</string>
+    <string name="history_doctor_specialty">ESPECIALISTA EN REHABILITACIÓN</string>
+    <string name="history_doctor_subject_tag">RE: FLEXIÓN DE CODO</string>
+    <string name="history_note_date">15 de Octubre, 2023</string>
+    <string name="history_note_subject">Evolución de Flexión de Codo</string>
+    <string name="history_note_body">"Excelente progreso en la extensión de la rodilla esta última semana. El incremento en el ROM es consistente con los ejercicios pautados. Sugiero mantener la intensidad y no forzar en caso de dolor agudo."</string>
+</resources>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_title">Progress History</string>
+    <string name="history_subtitle">Detailed tracking of your knee recovery.</string>
+
+    <!-- ROM card -->
+    <string name="history_rom_title">ROM Evolution</string>
+    <string name="history_rom_active">ACTIVE</string>
+    <string name="history_rom_passive">PASSIVE</string>
+
+    <!-- Stats -->
+    <string name="history_adherence_value">85%</string>
+    <string name="history_adherence_label">Adherence</string>
+    <string name="history_improvement_value">+15°</string>
+    <string name="history_improvement_label">Total Improvement</string>
+
+    <!-- Doctor note -->
+    <string name="history_doctor_name">Dr. Silva</string>
+    <string name="history_doctor_specialty">REHABILITATION SPECIALIST</string>
+    <string name="history_doctor_subject_tag">RE: ELBOW FLEXION</string>
+    <string name="history_note_date">October 15, 2023</string>
+    <string name="history_note_subject">Elbow Flexion Evolution</string>
+    <string name="history_note_body">"Excellent progress in knee extension this past week. The increase in ROM is consistent with the prescribed exercises. I suggest maintaining the intensity and not forcing through acute pain."</string>
+</resources>

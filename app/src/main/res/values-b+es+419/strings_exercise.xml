@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="exercise_back">Regresar</string>
+
+    <!-- Lista de ejercicios -->
+    <string name="exercise_list_title">Ejercicios de hoy</string>
+    <string name="exercise_list_subtitle">Tu rutina planificada para hoy.</string>
+    <string name="exercise_list_count">%1$d ejercicios</string>
+    <string name="exercise_name_elbow_flexion">Flexión de Codo</string>
+    <string name="exercise_name_shoulder_rotation">Rotación de Hombro</string>
+    <string name="exercise_name_wrist_extension">Extensión de Muñeca</string>
+    <string name="exercise_detail">%1$d series • %2$d reps</string>
+    <string name="exercise_start">Iniciar</string>
+
+    <!-- Preparación -->
+    <string name="exercise_prepare_badge">PREPÁRATE</string>
+    <string name="exercise_prepare_series">%1$d series</string>
+    <string name="exercise_prepare_reps">%1$d reps</string>
+    <string name="exercise_prepare_target">Codo derecho</string>
+    <string name="exercise_prepare_instructions">Coloca el sensor en tu antebrazo. Realiza el movimiento con control, sin balancear el cuerpo.</string>
+    <string name="exercise_prepare_start">Comenzar ejercicio</string>
+
+    <!-- Sesión en vivo -->
+    <string name="exercise_session_status_good">EN VIVO: DETECTANDO MOVIMIENTO</string>
+    <string name="exercise_session_status_error">ALERTA: POSTURA INCORRECTA</string>
+    <string name="exercise_session_posture_good">Rango óptimo alcanzado</string>
+    <string name="exercise_session_posture_error">Ajusta tu posición</string>
+    <string name="exercise_session_reps_label">REPETICIONES</string>
+    <string name="exercise_session_pause">Pausar</string>
+    <string name="exercise_session_resume">Reanudar</string>
+    <string name="exercise_session_finish">Finalizar</string>
+
+    <!-- Feedback -->
+    <string name="feedback_section_label">FEEDBACK DE SESIÓN</string>
+    <string name="feedback_pain_question">¿Cuánto dolor sentiste durante la rutina?</string>
+    <string name="feedback_pain_none">Nulo</string>
+    <string name="feedback_pain_mild">Leve</string>
+    <string name="feedback_pain_moderate">Moderado</string>
+    <string name="feedback_pain_strong">Fuerte</string>
+    <string name="feedback_pain_intense">Intenso</string>
+    <string name="feedback_slider_min">SIN DOLOR</string>
+    <string name="feedback_slider_max">DOLOR INTENSO</string>
+    <string name="feedback_sensations_question">¿Alguna otra sensación?</string>
+    <string name="feedback_sensation_fatigue">Siento fatiga</string>
+    <string name="feedback_sensation_fluid">Movimiento fluido</string>
+    <string name="feedback_sensation_stiffness">Rigidez</string>
+    <string name="feedback_sensation_pulses">Pulsadas</string>
+    <string name="feedback_comment_placeholder">Añade un comentario opcional…</string>
+    <string name="feedback_finalize">Finalizar Sesión</string>
+</resources>
