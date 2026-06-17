@@ -1,19 +1,21 @@
 package com.kiniot.uflex.features.main.presentation.shell
 
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,94 +44,85 @@ import com.kiniot.uflex.features.profile.presentation.EditContactInfoScreen
 import com.kiniot.uflex.features.profile.presentation.EditContactInfoTopBar
 import com.kiniot.uflex.features.profile.presentation.ProfileTopBar
 import com.kiniot.uflex.features.profile.presentation.ProfileScreen
+import kotlinx.serialization.Serializable
 
 @Composable
 fun MainShell(
     onSignedOut: () -> Unit
 ) {
-    val navController = rememberNavController()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = navBackStackEntry?.destination
-    val shouldShowBottomBar = currentDestination.shouldShowMainBottomBar()
-    val isEditContactInfoRoute = currentDestination?.hierarchy?.any {
-        it.hasRoute(EditContactInfoRoute::class)
-    } == true
-    val isProfileRoute = currentDestination?.hierarchy?.any {
-        it.hasRoute(ProfileRoute::class)
+    val mainNavController = rememberNavController()
+    val overlayNavController = rememberNavController()
+    val mainBackStackEntry by mainNavController.currentBackStackEntryAsState()
+    val mainDestination = mainBackStackEntry?.destination
+    val shouldShowBottomBar = mainDestination.shouldShowMainBottomBar()
+    val overlayBackStackEntry by overlayNavController.currentBackStackEntryAsState()
+    val overlayDestination = overlayBackStackEntry?.destination
+    val isOverlayVisible = overlayDestination?.hierarchy?.any {
+        it.hasRoute(ProfileRoute::class) || it.hasRoute(EditContactInfoRoute::class)
     } == true
 
-    Scaffold(
-        topBar = {
-            if (isEditContactInfoRoute) {
-                EditContactInfoTopBar(
-                    onBackClick = { navController.popBackStack() }
-                )
-            } else if (isProfileRoute) {
-                ProfileTopBar(
-                    onBackClick = { navController.popBackStack() }
-                )
-            } else {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
                 MainTopBar(
                     onProfileClick = {
-                        val isProfileSection = currentDestination?.hierarchy?.any { destination ->
-                            destination.hasRoute(ProfileRoute::class) ||
-                                destination.hasRoute(EditContactInfoRoute::class)
-                        } == true
-
-                        if (!isProfileSection) {
-                            navController.navigate(ProfileRoute) {
+                        if (!isOverlayVisible) {
+                            overlayNavController.navigate(ProfileRoute) {
                                 launchSingleTop = true
                             }
                         }
                     }
                 )
-            }
-        },
-        bottomBar = if (shouldShowBottomBar) {
-            {
-            NavigationBar {
-                MainNavigationItem.items.forEach { item ->
-                    NavigationBarItem(
-                        icon = {
-                            Icon(
-                                item.icon,
-                                contentDescription = stringResource(item.labelRes)
-                            )
-                        },
-                        label = { Text(stringResource(item.labelRes)) },
-                        selected = currentDestination?.hierarchy?.any {
-                            it.hasRoute(item.route::class)
-                        } == true,
-                        onClick = {
-                            navController.navigate(item.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+            },
+            bottomBar = if (shouldShowBottomBar) {
+                {
+                    NavigationBar {
+                        MainNavigationItem.items.forEach { item ->
+                            NavigationBarItem(
+                                icon = {
+                                    Icon(
+                                        item.icon,
+                                        contentDescription = stringResource(item.labelRes)
+                                    )
+                                },
+                                label = { Text(stringResource(item.labelRes)) },
+                                selected = mainDestination?.hierarchy?.any {
+                                    it.hasRoute(item.route::class)
+                                } == true,
+                                onClick = {
+                                    mainNavController.navigate(item.route) {
+                                        popUpTo(mainNavController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
                                 }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+                            )
                         }
-                    )
+                    }
                 }
+            } else {
+                {}
             }
+        ) { innerPadding ->
+            MainTabsNavHost(
+                innerPadding = innerPadding,
+                navController = mainNavController
+            )
         }
-        } else {
-            {}
-        }
-    ) { innerPadding ->
-        MainShellNavHost(
-            innerPadding = innerPadding,
-            navController = navController,
+
+        MainOverlayNavHost(
+            navController = overlayNavController,
             onSignedOut = onSignedOut
         )
     }
 }
 
 @Composable
-private fun MainShellNavHost(
+private fun MainTabsNavHost(
     innerPadding: PaddingValues,
-    navController: NavHostController,
-    onSignedOut: () -> Unit
+    navController: NavHostController
 ) {
     NavHost(
         navController = navController,
@@ -161,90 +154,121 @@ private fun MainShellNavHost(
                 paddingValues = innerPadding
             )
         }
+    }
+}
+
+@Composable
+private fun MainOverlayNavHost(
+    navController: NavHostController,
+    onSignedOut: () -> Unit
+) {
+    NavHost(
+        navController = navController,
+        startDestination = OverlayPlaceholderRoute,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        composable<OverlayPlaceholderRoute> {
+            Box(modifier = Modifier.fillMaxSize())
+        }
 
         composable<ProfileRoute>(
             enterTransition = {
                 slideInHorizontally(
-                    initialOffsetX = { fullWidth -> fullWidth / 6 },
-                    animationSpec = tween(durationMillis = 220)
-                ) + fadeIn(animationSpec = tween(durationMillis = 180))
+                    initialOffsetX = { fullWidth -> fullWidth },
+                    animationSpec = tween(durationMillis = 240)
+                )
             },
-            exitTransition = {
-                slideOutHorizontally(
-                    targetOffsetX = { fullWidth -> -fullWidth / 12 },
-                    animationSpec = tween(durationMillis = 220)
-                ) + fadeOut(animationSpec = tween(durationMillis = 180))
-            },
-            popEnterTransition = {
-                slideInHorizontally(
-                    initialOffsetX = { fullWidth -> -fullWidth / 6 },
-                    animationSpec = tween(durationMillis = 220)
-                ) + fadeIn(animationSpec = tween(durationMillis = 180))
-            },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
             popExitTransition = {
                 slideOutHorizontally(
-                    targetOffsetX = { fullWidth -> fullWidth / 12 },
+                    targetOffsetX = { fullWidth -> fullWidth },
                     animationSpec = tween(durationMillis = 220)
-                ) + fadeOut(animationSpec = tween(durationMillis = 180))
+                )
             }
         ) {
-            ProfileScreen(
-                paddingValues = innerPadding,
-                onEditContactInfo = { profile ->
-                    navController.navigate(
-                        EditContactInfoRoute(
-                            email = profile.email,
-                            countryCode = profile.countryCode,
-                            phoneNumber = profile.phoneNumber
-                        )
+            OverlayScreenContainer(
+                topBar = {
+                    ProfileTopBar(
+                        onBackClick = { navController.popBackStack() }
                     )
-                },
-                onSignedOut = onSignedOut
-            )
+                }
+            ) {
+                ProfileScreen(
+                    paddingValues = PaddingValues(),
+                    onEditContactInfo = { profile ->
+                        navController.navigate(
+                            EditContactInfoRoute(
+                                email = profile.email,
+                                countryCode = profile.countryCode,
+                                phoneNumber = profile.phoneNumber
+                            )
+                        )
+                    },
+                    onSignedOut = onSignedOut
+                )
+            }
         }
 
         composable<EditContactInfoRoute>(
             enterTransition = {
                 slideInHorizontally(
-                    initialOffsetX = { fullWidth -> fullWidth / 6 },
-                    animationSpec = tween(durationMillis = 220)
-                ) + fadeIn(animationSpec = tween(durationMillis = 180))
+                    initialOffsetX = { fullWidth -> fullWidth },
+                    animationSpec = tween(durationMillis = 240)
+                )
             },
-            exitTransition = {
-                slideOutHorizontally(
-                    targetOffsetX = { fullWidth -> -fullWidth / 12 },
-                    animationSpec = tween(durationMillis = 220)
-                ) + fadeOut(animationSpec = tween(durationMillis = 180))
-            },
-            popEnterTransition = {
-                slideInHorizontally(
-                    initialOffsetX = { fullWidth -> -fullWidth / 6 },
-                    animationSpec = tween(durationMillis = 220)
-                ) + fadeIn(animationSpec = tween(durationMillis = 180))
-            },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
             popExitTransition = {
                 slideOutHorizontally(
-                    targetOffsetX = { fullWidth -> fullWidth / 12 },
+                    targetOffsetX = { fullWidth -> fullWidth },
                     animationSpec = tween(durationMillis = 220)
-                ) + fadeOut(animationSpec = tween(durationMillis = 180))
+                )
             }
         ) { backStackEntry ->
             val args = backStackEntry.toRoute<EditContactInfoRoute>()
-            EditContactInfoScreen(
-                paddingValues = innerPadding,
-                initialEmail = args.email,
-                initialCountryCode = args.countryCode,
-                initialPhoneNumber = args.phoneNumber,
-                onSaved = {
-                    navController.navigate(ProfileRoute) {
-                        popUpTo<ProfileRoute> { inclusive = true }
-                        launchSingleTop = true
-                    }
+            OverlayScreenContainer(
+                topBar = {
+                    EditContactInfoTopBar(
+                        onBackClick = { navController.popBackStack() }
+                    )
                 }
-            )
+            ) {
+                EditContactInfoScreen(
+                    paddingValues = PaddingValues(),
+                    initialEmail = args.email,
+                    initialCountryCode = args.countryCode,
+                    initialPhoneNumber = args.phoneNumber,
+                    onSaved = {
+                        navController.navigate(ProfileRoute) {
+                            popUpTo<ProfileRoute> { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
         }
     }
 }
+
+@Composable
+private fun OverlayScreenContainer(
+    topBar: @Composable () -> Unit,
+    content: @Composable () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            topBar()
+            content()
+        }
+    }
+}
+
+@Serializable
+private object OverlayPlaceholderRoute
 
 @Composable
 private fun MainPlaceholderScreen(
