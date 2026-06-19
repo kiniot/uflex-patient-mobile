@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profile_error_title">We couldn’t load your profile</string>
+    <string name="profile_error_generic">Please try again in a moment.</string>
+    <string name="profile_retry">Try again</string>
+    <string name="profile_title">Profile</string>
+    <string name="profile_back">Go back</string>
+    <string name="profile_personal_information">Personal information</string>
+    <string name="profile_clinical_information">Clinical information</string>
+    <string name="profile_edit_contact_action">Edit contact info</string>
+    <string name="profile_edit_contact_title">Edit contact info</string>
+    <string name="profile_edit_contact_back">Go back</string>
+    <string name="profile_edit_contact_description">You can update only your email address and phone information here.</string>
+    <string name="profile_edit_contact_email">Email address</string>
+    <string name="profile_edit_contact_country_code">Country code</string>
+    <string name="profile_edit_contact_phone_number">Phone number</string>
+    <string name="profile_edit_contact_save">Save changes</string>
+    <string name="profile_edit_contact_error_email_required">Enter your email address.</string>
+    <string name="profile_edit_contact_error_email_invalid">Enter a valid email address.</string>
+    <string name="profile_edit_contact_error_country_code_required">Enter your country code.</string>
+    <string name="profile_edit_contact_error_phone_required">Enter your phone number.</string>
+    <string name="profile_dni">National ID</string>
+    <string name="profile_birth_date">Birth date</string>
+    <string name="profile_gender">Gender</string>
+    <string name="profile_phone_number">Phone number</string>
+    <string name="profile_medical_condition">Medical condition</string>
+    <string name="profile_status">Status</string>
+    <string name="profile_sign_out">Sign out</string>
+    <string name="profile_gender_male">Male</string>
+    <string name="profile_gender_female">Female</string>
+    <string name="profile_gender_unknown">Unknown</string>
+    <string name="profile_status_unassigned">Unassigned</string>
+    <string name="profile_status_in_treatment">In treatment</string>
+    <string name="profile_status_completed">Completed</string>
+    <string name="profile_status_discharged">Discharged</string>
+    <string name="profile_status_inactive">Inactive</string>
+    <string name="profile_status_unknown">Unknown</string>
+</resources>

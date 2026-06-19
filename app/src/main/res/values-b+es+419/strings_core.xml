@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="core_error_network">Revisa tu conexión a internet.</string>
+    <string name="core_error_auth_required">Debes iniciar sesión para continuar.</string>
+    <string name="core_error_access_denied">No tienes permisos para realizar esta acción.</string>
+    <string name="core_error_bad_request">Revisa los datos ingresados.</string>
+    <string name="core_error_not_found">No se encontró la información solicitada.</string>
+    <string name="core_error_conflict">Ya existe un registro con esos datos.</string>
+    <string name="core_error_server">Ocurrió un problema en el servidor. Intenta más tarde.</string>
+    <string name="core_error_unknown">Ocurrió un error inesperado.</string>
+</resources>
