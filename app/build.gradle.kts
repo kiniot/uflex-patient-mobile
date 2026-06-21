@@ -112,6 +112,11 @@ dependencies {
     // Serialization JSON
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.retrofit.kotlin.serialization)
+    // Nordic Kotlin BLE Library
+    implementation(libs.nordic.ble.scanner)
+    implementation(libs.nordic.ble.client)
+    implementation(libs.nordic.ble.client.android)
+    implementation(libs.nordic.ble.core)
     // Desugaring
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 }

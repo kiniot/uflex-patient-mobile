@@ -38,6 +38,7 @@ import com.kiniot.uflex.features.home.presentation.home.HomeScreen
 import com.kiniot.uflex.features.main.navigation.MainDevicesRoute
 import com.kiniot.uflex.features.main.navigation.MainExercisesRoute
 import com.kiniot.uflex.features.main.navigation.MainHistoryRoute
+import com.kiniot.uflex.features.device.presentation.DeviceConnectionScreen
 import com.kiniot.uflex.features.profile.navigation.EditContactInfoRoute
 import com.kiniot.uflex.features.profile.navigation.ProfileRoute
 import com.kiniot.uflex.features.profile.presentation.EditContactInfoScreen
@@ -135,8 +136,7 @@ private fun MainTabsNavHost(
         }
 
         composable<MainDevicesRoute> {
-            MainPlaceholderScreen(
-                title = stringResource(R.string.main_devices_placeholder),
+            DeviceConnectionScreen(
                 paddingValues = innerPadding
             )
         }

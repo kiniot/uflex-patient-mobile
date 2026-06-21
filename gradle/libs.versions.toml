@@ -43,6 +43,8 @@ uiTextGoogleFonts = "1.9.2"
 uiText = "1.9.2"
 # Serialization Json
 kotlinxSerializationJson = "1.8.0"
+# Nordic Kotlin BLE Library
+nordicKotlinBle = "1.3.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -101,6 +103,11 @@ androidx-compose-ui-text = { group = "androidx.compose.ui", name = "ui-text", ve
 # Serialization Json
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 retrofit-kotlin-serialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofit" }
+# Nordic Kotlin BLE Library
+nordic-ble-scanner = { group = "no.nordicsemi.android.kotlin.ble", name = "scanner", version.ref = "nordicKotlinBle" }
+nordic-ble-client = { group = "no.nordicsemi.android.kotlin.ble", name = "client", version.ref = "nordicKotlinBle" }
+nordic-ble-client-android = { group = "no.nordicsemi.android.kotlin.ble", name = "client-android", version.ref = "nordicKotlinBle" }
+nordic-ble-core = { group = "no.nordicsemi.android.kotlin.ble", name = "core", version.ref = "nordicKotlinBle" }
 # Android desugar JDK libs
 desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 
