@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withTimeoutOrNull
@@ -29,6 +28,7 @@ import no.nordicsemi.android.kotlin.ble.client.main.callback.ClientBleGatt
 import no.nordicsemi.android.kotlin.ble.client.main.service.ClientBleGattCharacteristic
 import no.nordicsemi.android.kotlin.ble.core.ServerDevice
 import no.nordicsemi.android.kotlin.ble.core.data.GattConnectionState
+import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResult
 import no.nordicsemi.android.kotlin.ble.scanner.BleScanner
 
 /**
@@ -143,13 +143,23 @@ class DeviceBleDataSourceImpl @Inject constructor(
     private suspend fun scanForDevice(advertisedName: String): ServerDevice? {
         return withTimeoutOrNull(SCAN_TIMEOUT_MILLIS) {
             BleScanner(context).scan()
-                .map { it.device }
-                .first { it.hasName(advertisedName) }
+                .first { it.matchesUflexKit(advertisedName) }
+                .device
         }
     }
 
-    private fun ServerDevice.hasName(expected: String): Boolean {
-        return name == expected
+    /**
+     * Matches a uFlex kit primarily by the advertised service UUID, which is the reliable
+     * discovery filter: the device name often does not fit alongside the 128-bit service UUID in
+     * the 31-byte advertisement, so name matching alone is fragile. The name is kept as a
+     * fallback, and the kit serial is still verified after connecting (see device-identity-contract).
+     */
+    private fun BleScanResult.matchesUflexKit(advertisedName: String): Boolean {
+        val record = data?.scanRecord
+        val advertisesService =
+            record?.serviceUuids?.any { it.uuid == UflexGattProfile.SERVICE_UUID } == true
+        val nameMatches = device.name == advertisedName || record?.deviceName == advertisedName
+        return advertisesService || nameMatches
     }
 
     private fun fail(reason: BleConnectionState.Failed.Reason): AppResult<Unit> {
