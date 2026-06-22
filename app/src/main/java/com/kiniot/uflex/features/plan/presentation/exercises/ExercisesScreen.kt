@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -47,6 +49,7 @@ import com.kiniot.uflex.features.plan.domain.model.TreatmentPlan
 fun ExercisesScreen(
     paddingValues: PaddingValues,
     onExerciseClick: (String) -> Unit,
+    onStartSession: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ExercisesViewModel = hiltViewModel()
 ) {
@@ -59,7 +62,8 @@ fun ExercisesScreen(
             else -> ExercisesContent(
                 activePlan = uiState.activePlan,
                 scheduledPlans = uiState.scheduledPlans,
-                onExerciseClick = onExerciseClick
+                onExerciseClick = onExerciseClick,
+                onStartSession = onStartSession
             )
         }
     }
@@ -69,7 +73,8 @@ fun ExercisesScreen(
 private fun ExercisesContent(
     activePlan: TreatmentPlan?,
     scheduledPlans: List<TreatmentPlan>,
-    onExerciseClick: (String) -> Unit
+    onExerciseClick: (String) -> Unit,
+    onStartSession: (String) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -77,7 +82,7 @@ private fun ExercisesContent(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         if (activePlan != null) {
-            item(key = "hero") { ActivePlanHero(activePlan) }
+            item(key = "hero") { ActivePlanHero(activePlan, onStartSession = { onStartSession(activePlan.id) }) }
             activePlan.routines.forEach { routine ->
                 item(key = "routine-${routine.id}") { RoutineHeader(routine) }
                 items(routine.exercises, key = { "ex-${routine.id}-${it.order}-${it.exerciseId}" }) { exercise ->
@@ -103,7 +108,7 @@ private fun ExercisesContent(
 }
 
 @Composable
-private fun ActivePlanHero(plan: TreatmentPlan) {
+private fun ActivePlanHero(plan: TreatmentPlan, onStartSession: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
@@ -135,6 +140,19 @@ private fun ActivePlanHero(plan: TreatmentPlan) {
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
                     )
                 }
+            }
+            Button(
+                onClick = onStartSession,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Icon(
+                    Icons.Default.PlayArrow,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.size(8.dp))
+                Text(stringResource(R.string.therapy_start_today))
             }
         }
     }

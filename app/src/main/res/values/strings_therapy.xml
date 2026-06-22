@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Entry CTA (on the Exercises active-plan hero) -->
+    <string name="therapy_start_today">Start today\'s session</string>
+
+    <!-- Preparation flow -->
+    <string name="therapy_prep_title">Session</string>
+    <string name="therapy_prep_back">Back</string>
+
+    <string name="therapy_no_routine_title">No session today</string>
+    <string name="therapy_no_routine_subtitle">You don\'t have a routine scheduled for today.</string>
+    <string name="therapy_no_device_title">No device assigned</string>
+    <string name="therapy_no_device_subtitle">Ask your therapist to assign a uFlex kit to you.</string>
+
+    <string name="therapy_summary_title">Today\'s session</string>
+    <string name="therapy_summary_detail">%1$d exercises · about %2$d min</string>
+    <string name="therapy_summary_device">Kit: %1$s</string>
+    <string name="therapy_begin">Begin</string>
+
+    <string name="therapy_resume_title">Session in preparation</string>
+    <string name="therapy_resume_subtitle">You have a session ready to continue.</string>
+    <string name="therapy_continue">Continue</string>
+
+    <string name="therapy_initiating">Preparing your session…</string>
+    <string name="therapy_starting">Starting…</string>
+
+    <string name="therapy_sensors_title">Place the sensors</string>
+    <string name="therapy_sensors_checkbox">I\'ve placed the sensors</string>
+    <string name="therapy_start">Start session</string>
+
+    <string name="therapy_started_title">Session started!</string>
+    <string name="therapy_started_connected">Your kit is connected and your session is running.</string>
+    <string name="therapy_started_disconnected">Your session is running, but your kit isn\'t connected. Turn it on and reconnect.</string>
+    <string name="therapy_reconnect">Reconnect kit</string>
+    <string name="therapy_done">Done</string>
+
+    <string name="therapy_failed_title">Something went wrong</string>
+    <string name="therapy_retry">Try again</string>
+    <string name="therapy_cancel_session">Cancel session</string>
+    <string name="therapy_permission_needed">Bluetooth permissions are required to connect.</string>
+
+    <!-- BLE connection states -->
+    <string name="ble_state_scanning">Looking for your kit…</string>
+    <string name="ble_state_connecting">Connecting…</string>
+    <string name="ble_state_confirming">Confirming the device…</string>
+    <string name="ble_state_connected">Connected</string>
+    <string name="ble_state_disconnected">Disconnected</string>
+
+    <!-- BLE failures -->
+    <string name="ble_fail_device_not_found">Couldn\'t find your kit. Make sure it\'s on and nearby.</string>
+    <string name="ble_fail_connection_lost">The connection was lost.</string>
+    <string name="ble_fail_identity_mismatch">This isn\'t the kit assigned to you.</string>
+    <string name="ble_fail_missing_service">The kit doesn\'t expose the expected service.</string>
+    <string name="ble_fail_bluetooth_unavailable">Bluetooth is unavailable.</string>
+    <string name="ble_fail_permission_denied">Bluetooth permission was denied.</string>
+    <string name="ble_fail_unknown">Couldn\'t connect to your kit.</string>
+</resources>
