@@ -7,6 +7,7 @@ import com.kiniot.uflex.features.therapy.data.mapper.toDomain
 import com.kiniot.uflex.features.therapy.data.remote.datasource.TherapyRemoteDataSource
 import com.kiniot.uflex.features.therapy.data.remote.dto.InitiateSessionRequestDto
 import com.kiniot.uflex.features.therapy.domain.model.DailySchedule
+import com.kiniot.uflex.features.therapy.domain.model.SessionProgress
 import com.kiniot.uflex.features.therapy.domain.model.TherapySession
 import com.kiniot.uflex.features.therapy.domain.repository.TherapyRepository
 import javax.inject.Inject
@@ -26,7 +27,13 @@ class TherapyRepositoryImpl @Inject constructor(
 
     override suspend fun getActiveSession(): AppResult<TherapySession> {
         val patientId = currentPatientId() ?: return missingPatient()
-        return remoteDataSource.getActiveSession(patientId).toSession()
+        return when (val result = remoteDataSource.getActiveSession(patientId)) {
+            is AppResult.Success -> AppResult.Success(result.data.toDomain())
+            // "No active session" comes back as a domain-coded 404 (THERAPY_SESSION_NOT_FOUND),
+            // which the core mapper turns into AppError.Business. Normalize it to NotFound so
+            // callers can treat it as the empty/no-session state (e.g. preparation -> summary).
+            is AppResult.Error -> AppResult.Error(result.error.asNotFoundIf404())
+        }
     }
 
     override suspend fun initiate(
@@ -53,9 +60,28 @@ class TherapyRepositoryImpl @Inject constructor(
     override suspend fun cancelSession(sessionId: String, reason: String): AppResult<TherapySession> =
         remoteDataSource.cancel(sessionId, reason).toSession()
 
+    override suspend fun startSerie(sessionId: String, serieId: String): AppResult<Unit> =
+        remoteDataSource.startSerie(sessionId, serieId)
+
+    override suspend fun getProgress(sessionId: String): AppResult<SessionProgress> =
+        when (val result = remoteDataSource.getProgress(sessionId)) {
+            is AppResult.Success -> AppResult.Success(result.data.toDomain())
+            is AppResult.Error -> result
+        }
+
+    override suspend fun reportPain(sessionId: String, painLevel: Int): AppResult<Unit> =
+        remoteDataSource.reportPain(sessionId, painLevel)
+
+    override suspend fun finalize(sessionId: String): AppResult<TherapySession> =
+        remoteDataSource.finalize(sessionId).toSession()
+
     private suspend fun currentPatientId(): String? = sessionStore.getSession()?.patientId
 
     private fun missingPatient(): AppResult.Error = AppResult.Error(AppError.Unknown())
+
+    /** A backend domain-coded 404 maps to [AppError.Business]; treat it as [AppError.NotFound]. */
+    private fun AppError.asNotFoundIf404(): AppError =
+        if (this is AppError.Business && status == 404) AppError.NotFound else this
 
     private fun AppResult<com.kiniot.uflex.features.therapy.data.remote.dto.TherapySessionResponseDto>.toSession():
         AppResult<TherapySession> = when (this) {

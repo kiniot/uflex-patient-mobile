@@ -4,7 +4,10 @@ import com.kiniot.uflex.features.therapy.data.remote.dto.CancelSessionRequestDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.ConfirmHardwareRequestDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.DailyScheduleResponseDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.InitiateSessionRequestDto
+import com.kiniot.uflex.features.therapy.data.remote.dto.ReportPainRequestDto
+import com.kiniot.uflex.features.therapy.data.remote.dto.SessionProgressResponseDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.TherapySessionResponseDto
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -40,4 +43,26 @@ interface TherapyApiService {
         @Path("id") sessionId: String,
         @Body request: CancelSessionRequestDto
     ): Response<TherapySessionResponseDto>
+
+    // --- Phase 3: execution ---
+
+    /** Start a serie (Pending -> Started). Body (SerieDetails) is ignored; we re-poll progress. */
+    @PATCH("therapy-sessions/{id}/series/{serieId}/start")
+    suspend fun startSerie(
+        @Path("id") sessionId: String,
+        @Path("serieId") serieId: String
+    ): Response<ResponseBody>
+
+    @GET("therapy-sessions/{id}/progress")
+    suspend fun getProgress(@Path("id") sessionId: String): Response<SessionProgressResponseDto>
+
+    /** Report a pain level (0-10). Backend returns an empty 200. */
+    @PATCH("therapy-sessions/{id}/pain")
+    suspend fun reportPain(
+        @Path("id") sessionId: String,
+        @Body request: ReportPainRequestDto
+    ): Response<ResponseBody>
+
+    @PATCH("therapy-sessions/{id}/finalize")
+    suspend fun finalize(@Path("id") sessionId: String): Response<TherapySessionResponseDto>
 }

@@ -46,6 +46,31 @@
     <string name="ble_state_connected">Conectado</string>
     <string name="ble_state_disconnected">Desconectado</string>
 
+    <!-- Execution flow (Phase 3) -->
+    <string name="therapy_exec_continue">Comenzar ejercicios</string>
+    <string name="therapy_exec_title">En sesión</string>
+    <string name="therapy_exec_serie_progress">Ejercicio %1$d de %2$d</string>
+    <string name="therapy_exec_reps">%1$d / %2$d reps</string>
+    <string name="therapy_exec_start_serie">Iniciar ejercicio</string>
+    <string name="therapy_exec_running">Ejercicio en curso</string>
+    <string name="therapy_exec_waiting">Listo para el siguiente ejercicio</string>
+    <string name="therapy_exec_all_done">Todos los ejercicios completados</string>
+    <string name="therapy_exec_angle">Ángulo en vivo</string>
+    <string name="therapy_exec_degrees">%1$d°</string>
+    <string name="therapy_exec_actuators">Actuadores</string>
+    <string name="therapy_exec_led">LED</string>
+    <string name="therapy_exec_buzzer">Zumbador</string>
+    <string name="therapy_exec_vibration">Vibración</string>
+    <string name="therapy_exec_disconnected_banner">Kit desconectado — lecturas en vivo pausadas.</string>
+    <string name="therapy_exec_report_pain">Reportar dolor</string>
+    <string name="therapy_exec_pain_title">¿Nivel de dolor?</string>
+    <string name="therapy_exec_pain_subtitle">0 = sin dolor, 10 = máximo</string>
+    <string name="therapy_exec_pain_send">Enviar</string>
+    <string name="therapy_exec_cancel">Cancelar</string>
+    <string name="therapy_exec_pain_reported">Dolor reportado</string>
+    <string name="therapy_exec_finalize">Finalizar sesión</string>
+    <string name="therapy_exec_finished">¡Sesión completada!</string>
+
     <!-- BLE failures -->
     <string name="ble_fail_device_not_found">No se encontró tu kit. Asegúrate de que esté encendido y cerca.</string>
     <string name="ble_fail_connection_lost">Se perdió la conexión.</string>

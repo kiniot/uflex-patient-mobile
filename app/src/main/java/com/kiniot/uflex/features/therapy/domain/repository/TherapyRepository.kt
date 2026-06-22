@@ -2,6 +2,7 @@ package com.kiniot.uflex.features.therapy.domain.repository
 
 import com.kiniot.uflex.core.result.AppResult
 import com.kiniot.uflex.features.therapy.domain.model.DailySchedule
+import com.kiniot.uflex.features.therapy.domain.model.SessionProgress
 import com.kiniot.uflex.features.therapy.domain.model.TherapySession
 
 interface TherapyRepository {
@@ -22,4 +23,14 @@ interface TherapyRepository {
     suspend fun startSession(sessionId: String): AppResult<TherapySession>
 
     suspend fun cancelSession(sessionId: String, reason: String): AppResult<TherapySession>
+
+    // --- Phase 3: execution ---
+
+    suspend fun startSerie(sessionId: String, serieId: String): AppResult<Unit>
+
+    suspend fun getProgress(sessionId: String): AppResult<SessionProgress>
+
+    suspend fun reportPain(sessionId: String, painLevel: Int): AppResult<Unit>
+
+    suspend fun finalize(sessionId: String): AppResult<TherapySession>
 }

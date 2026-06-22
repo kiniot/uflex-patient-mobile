@@ -49,6 +49,7 @@ import com.kiniot.uflex.features.therapy.presentation.preparation.SessionPrepara
 fun SessionPreparationScreen(
     paddingValues: PaddingValues,
     onBack: () -> Unit,
+    onNavigateToExecution: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SessionPreparationViewModel = hiltViewModel()
 ) {
@@ -149,6 +150,7 @@ fun SessionPreparationScreen(
                     connected = uiState.connectionState is BleConnectionState.Connected,
                     permissionDenied = permissionDenied,
                     onReconnect = { withPermissions { viewModel.onReconnect() } },
+                    onContinue = { uiState.sessionId?.let(onNavigateToExecution) },
                     onDone = onBack
                 )
 
@@ -268,6 +270,7 @@ private fun StartedContent(
     connected: Boolean,
     permissionDenied: Boolean,
     onReconnect: () -> Unit,
+    onContinue: () -> Unit,
     onDone: () -> Unit
 ) {
     CenteredCard(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -298,7 +301,10 @@ private fun StartedContent(
                 shape = RoundedCornerShape(18.dp)
             ) { Text(stringResource(R.string.therapy_reconnect)) }
         }
-        Button(onClick = onDone, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp)) {
+        Button(onClick = onContinue, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp)) {
+            Text(stringResource(R.string.therapy_exec_continue))
+        }
+        TextButton(onClick = onDone, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.therapy_done))
         }
     }

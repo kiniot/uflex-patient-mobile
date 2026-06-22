@@ -43,7 +43,10 @@ import com.kiniot.uflex.features.plan.navigation.ExerciseDetailRoute
 import com.kiniot.uflex.features.plan.presentation.detail.ExerciseDetailScreen
 import com.kiniot.uflex.features.plan.presentation.detail.ExerciseDetailTopBar
 import com.kiniot.uflex.features.plan.presentation.exercises.ExercisesScreen
+import com.kiniot.uflex.features.therapy.navigation.SessionExecutionRoute
 import com.kiniot.uflex.features.therapy.navigation.SessionPreparationRoute
+import com.kiniot.uflex.features.therapy.presentation.execution.SessionExecutionScreen
+import com.kiniot.uflex.features.therapy.presentation.execution.SessionExecutionTopBar
 import com.kiniot.uflex.features.therapy.presentation.preparation.SessionPreparationScreen
 import com.kiniot.uflex.features.therapy.presentation.preparation.SessionPreparationTopBar
 import com.kiniot.uflex.features.profile.navigation.EditContactInfoRoute
@@ -69,7 +72,8 @@ fun MainShell(
         it.hasRoute(ProfileRoute::class) ||
             it.hasRoute(EditContactInfoRoute::class) ||
             it.hasRoute(ExerciseDetailRoute::class) ||
-            it.hasRoute(SessionPreparationRoute::class)
+            it.hasRoute(SessionPreparationRoute::class) ||
+            it.hasRoute(SessionExecutionRoute::class)
     } == true
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -329,6 +333,42 @@ private fun MainOverlayNavHost(
                 }
             ) {
                 SessionPreparationScreen(
+                    paddingValues = PaddingValues(),
+                    onBack = { navController.popBackStack() },
+                    onNavigateToExecution = { sessionId ->
+                        navController.navigate(SessionExecutionRoute(sessionId)) {
+                            popUpTo<SessionPreparationRoute> { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+        }
+
+        composable<SessionExecutionRoute>(
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { fullWidth -> fullWidth },
+                    animationSpec = tween(durationMillis = 240)
+                )
+            },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { fullWidth -> fullWidth },
+                    animationSpec = tween(durationMillis = 220)
+                )
+            }
+        ) {
+            OverlayScreenContainer(
+                topBar = {
+                    SessionExecutionTopBar(
+                        onBackClick = { navController.popBackStack() }
+                    )
+                }
+            ) {
+                SessionExecutionScreen(
                     paddingValues = PaddingValues(),
                     onBack = { navController.popBackStack() }
                 )

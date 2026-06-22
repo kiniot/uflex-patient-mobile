@@ -1,9 +1,14 @@
 package com.kiniot.uflex.features.therapy.data.mapper
 
 import com.kiniot.uflex.features.therapy.data.remote.dto.DailyScheduleResponseDto
+import com.kiniot.uflex.features.therapy.data.remote.dto.SerieProgressResponseDto
+import com.kiniot.uflex.features.therapy.data.remote.dto.SessionProgressResponseDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.TherapySessionResponseDto
 import com.kiniot.uflex.features.therapy.domain.model.DailySchedule
 import com.kiniot.uflex.features.therapy.domain.model.ScheduleResolution
+import com.kiniot.uflex.features.therapy.domain.model.SerieProgress
+import com.kiniot.uflex.features.therapy.domain.model.SerieStatus
+import com.kiniot.uflex.features.therapy.domain.model.SessionProgress
 import com.kiniot.uflex.features.therapy.domain.model.SessionStatus
 import com.kiniot.uflex.features.therapy.domain.model.TherapySession
 
@@ -20,6 +25,25 @@ fun DailyScheduleResponseDto.toDomain(): DailySchedule = DailySchedule(
     estimatedDurationMinutes = estimatedDurationMinutes ?: 0
 )
 
+fun SessionProgressResponseDto.toDomain(): SessionProgress = SessionProgress(
+    sessionId = sessionId.orEmpty(),
+    status = status.toSessionStatus(),
+    currentSerieId = currentSerieId,
+    completedSeries = completedSeries ?: 0,
+    totalSeries = totalSeries ?: 0,
+    painLevel = painLevel,
+    requiresClinicalReview = requiresClinicalReview ?: false,
+    series = seriesProgress.map { it.toDomain() }
+)
+
+fun SerieProgressResponseDto.toDomain(): SerieProgress = SerieProgress(
+    serieId = serieId.orEmpty(),
+    exerciseId = exerciseId,
+    currentRepetitions = currentRepetitions ?: 0,
+    targetRepetitions = targetRepetitions ?: 0,
+    status = status.toSerieStatus()
+)
+
 private fun String?.toSessionStatus(): SessionStatus = when (this) {
     "Pending" -> SessionStatus.Pending
     "Ready" -> SessionStatus.Ready
@@ -27,6 +51,14 @@ private fun String?.toSessionStatus(): SessionStatus = when (this) {
     "Completed" -> SessionStatus.Completed
     "Cancelled" -> SessionStatus.Cancelled
     else -> SessionStatus.Unknown
+}
+
+private fun String?.toSerieStatus(): SerieStatus = when (this) {
+    "Pending" -> SerieStatus.Pending
+    "Started" -> SerieStatus.Started
+    "Completed" -> SerieStatus.Completed
+    "Failed" -> SerieStatus.Failed
+    else -> SerieStatus.Unknown
 }
 
 private fun String?.toScheduleResolution(): ScheduleResolution = when (this) {
