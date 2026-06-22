@@ -45,6 +45,8 @@ uiText = "1.9.2"
 kotlinxSerializationJson = "1.8.0"
 # Nordic Kotlin BLE Library
 nordicKotlinBle = "1.3.1"
+# Media3 (ExoPlayer) for exercise video playback
+media3 = "1.4.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -103,6 +105,9 @@ androidx-compose-ui-text = { group = "androidx.compose.ui", name = "ui-text", ve
 # Serialization Json
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 retrofit-kotlin-serialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofit" }
+# Media3 (ExoPlayer) for exercise video playback
+androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
+androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3" }
 # Nordic Kotlin BLE Library
 nordic-ble-scanner = { group = "no.nordicsemi.android.kotlin.ble", name = "scanner", version.ref = "nordicKotlinBle" }
 nordic-ble-client = { group = "no.nordicsemi.android.kotlin.ble", name = "client", version.ref = "nordicKotlinBle" }

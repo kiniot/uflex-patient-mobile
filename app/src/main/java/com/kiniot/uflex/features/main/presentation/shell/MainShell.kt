@@ -39,6 +39,10 @@ import com.kiniot.uflex.features.main.navigation.MainDevicesRoute
 import com.kiniot.uflex.features.main.navigation.MainExercisesRoute
 import com.kiniot.uflex.features.main.navigation.MainHistoryRoute
 import com.kiniot.uflex.features.device.presentation.DeviceConnectionScreen
+import com.kiniot.uflex.features.plan.navigation.ExerciseDetailRoute
+import com.kiniot.uflex.features.plan.presentation.detail.ExerciseDetailScreen
+import com.kiniot.uflex.features.plan.presentation.detail.ExerciseDetailTopBar
+import com.kiniot.uflex.features.plan.presentation.exercises.ExercisesScreen
 import com.kiniot.uflex.features.profile.navigation.EditContactInfoRoute
 import com.kiniot.uflex.features.profile.navigation.ProfileRoute
 import com.kiniot.uflex.features.profile.presentation.EditContactInfoScreen
@@ -59,7 +63,9 @@ fun MainShell(
     val overlayBackStackEntry by overlayNavController.currentBackStackEntryAsState()
     val overlayDestination = overlayBackStackEntry?.destination
     val isOverlayVisible = overlayDestination?.hierarchy?.any {
-        it.hasRoute(ProfileRoute::class) || it.hasRoute(EditContactInfoRoute::class)
+        it.hasRoute(ProfileRoute::class) ||
+            it.hasRoute(EditContactInfoRoute::class) ||
+            it.hasRoute(ExerciseDetailRoute::class)
     } == true
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -109,7 +115,14 @@ fun MainShell(
         ) { innerPadding ->
             MainTabsNavHost(
                 innerPadding = innerPadding,
-                navController = mainNavController
+                navController = mainNavController,
+                onExerciseClick = { exerciseId ->
+                    if (!isOverlayVisible) {
+                        overlayNavController.navigate(ExerciseDetailRoute(exerciseId)) {
+                            launchSingleTop = true
+                        }
+                    }
+                }
             )
         }
 
@@ -123,7 +136,8 @@ fun MainShell(
 @Composable
 private fun MainTabsNavHost(
     innerPadding: PaddingValues,
-    navController: NavHostController
+    navController: NavHostController,
+    onExerciseClick: (String) -> Unit
 ) {
     NavHost(
         navController = navController,
@@ -142,9 +156,9 @@ private fun MainTabsNavHost(
         }
 
         composable<MainExercisesRoute> {
-            MainPlaceholderScreen(
-                title = stringResource(R.string.main_exercises_placeholder),
-                paddingValues = innerPadding
+            ExercisesScreen(
+                paddingValues = innerPadding,
+                onExerciseClick = onExerciseClick
             )
         }
 
@@ -245,6 +259,35 @@ private fun MainOverlayNavHost(
                             launchSingleTop = true
                         }
                     }
+                )
+            }
+        }
+
+        composable<ExerciseDetailRoute>(
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { fullWidth -> fullWidth },
+                    animationSpec = tween(durationMillis = 240)
+                )
+            },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { fullWidth -> fullWidth },
+                    animationSpec = tween(durationMillis = 220)
+                )
+            }
+        ) {
+            OverlayScreenContainer(
+                topBar = {
+                    ExerciseDetailTopBar(
+                        onBackClick = { navController.popBackStack() }
+                    )
+                }
+            ) {
+                ExerciseDetailScreen(
+                    paddingValues = PaddingValues()
                 )
             }
         }

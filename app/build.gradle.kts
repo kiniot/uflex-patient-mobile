@@ -117,6 +117,9 @@ dependencies {
     implementation(libs.nordic.ble.client)
     implementation(libs.nordic.ble.client.android)
     implementation(libs.nordic.ble.core)
+    // Media3 (ExoPlayer) for exercise video playback
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
     // Desugaring
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 }

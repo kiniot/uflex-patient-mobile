@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Exercises tab -->
+    <string name="plan_active_label">Active plan</string>
+    <string name="plan_scheduled_title">Scheduled</string>
+    <string name="plan_scheduled_starts">Starts %1$s</string>
+    <string name="plan_routine_count">%1$d routines</string>
+    <string name="plan_empty_title">No active plan</string>
+    <string name="plan_empty_subtitle">When your therapist activates a plan, it will appear here.</string>
+    <string name="plan_error_title">We couldn\'t load your plan</string>
+    <string name="plan_retry">Try again</string>
+
+    <!-- Plan status -->
+    <string name="plan_status_scheduled">Scheduled</string>
+    <string name="plan_status_active">Active</string>
+    <string name="plan_status_completed">Completed</string>
+    <string name="plan_status_canceled">Canceled</string>
+    <string name="plan_status_unknown">Unknown</string>
+
+    <!-- Dosage -->
+    <string name="plan_dosage_reps">%1$d reps</string>
+    <string name="plan_dosage_rom">%1$d°</string>
+    <string name="plan_dosage_seconds">%1$d s</string>
+
+    <!-- Body parts -->
+    <string name="bodypart_elbow">Elbow</string>
+    <string name="bodypart_wrist">Wrist</string>
+    <string name="bodypart_unknown">Other</string>
+
+    <!-- Movements -->
+    <string name="movement_pronation">Pronation</string>
+    <string name="movement_supination">Supination</string>
+    <string name="movement_flexion">Flexion</string>
+    <string name="movement_extension">Extension</string>
+    <string name="movement_unknown">Movement</string>
+
+    <!-- Exercise detail -->
+    <string name="exercise_detail_title">Exercise</string>
+    <string name="exercise_detail_back">Back</string>
+    <string name="exercise_detail_description">Description</string>
+    <string name="exercise_detail_error_title">We couldn\'t load this exercise</string>
+    <string name="exercise_video_unavailable">No video available for this exercise</string>
+</resources>
