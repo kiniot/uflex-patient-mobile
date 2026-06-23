@@ -52,6 +52,10 @@
     <string name="therapy_exec_serie_progress">Ejercicio %1$d de %2$d</string>
     <string name="therapy_exec_reps">%1$d / %2$d reps</string>
     <string name="therapy_exec_start_serie">Iniciar ejercicio</string>
+    <string name="therapy_exec_calibrate_title">Ponte en posición</string>
+    <string name="therapy_exec_calibrate_body">Extiende el brazo por completo y mantén la posición — así fijamos tu punto de inicio.</string>
+    <string name="therapy_exec_calibrate_confirm">Calibrar e iniciar</string>
+    <string name="therapy_exec_calibrating">Calibrando… mantén la posición</string>
     <string name="therapy_exec_running">Ejercicio en curso</string>
     <string name="therapy_exec_waiting">Listo para el siguiente ejercicio</string>
     <string name="therapy_exec_all_done">Todos los ejercicios completados</string>

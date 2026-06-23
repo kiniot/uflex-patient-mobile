@@ -1,10 +1,12 @@
 package com.kiniot.uflex.features.therapy.data.mapper
 
 import com.kiniot.uflex.features.therapy.data.remote.dto.DailyScheduleResponseDto
+import com.kiniot.uflex.features.therapy.data.remote.dto.LiveRepEventDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.SerieProgressResponseDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.SessionProgressResponseDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.TherapySessionResponseDto
 import com.kiniot.uflex.features.therapy.domain.model.DailySchedule
+import com.kiniot.uflex.features.therapy.domain.model.LiveRepEvent
 import com.kiniot.uflex.features.therapy.domain.model.ScheduleResolution
 import com.kiniot.uflex.features.therapy.domain.model.SerieProgress
 import com.kiniot.uflex.features.therapy.domain.model.SerieStatus
@@ -42,6 +44,12 @@ fun SerieProgressResponseDto.toDomain(): SerieProgress = SerieProgress(
     currentRepetitions = currentRepetitions ?: 0,
     targetRepetitions = targetRepetitions ?: 0,
     status = status.toSerieStatus()
+)
+
+fun LiveRepEventDto.toDomain(): LiveRepEvent = LiveRepEvent(
+    serieId = serieId,
+    repsDetected = repsDetected,
+    classification = classification
 )
 
 private fun String?.toSessionStatus(): SessionStatus = when (this) {

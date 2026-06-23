@@ -32,10 +32,12 @@ android {
     buildTypes {
         debug {
             buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/api/v1/\"")
+            buildConfigField("String", "EDGE_BASE_URL", "\"http://10.0.2.2:5000/\"")
             buildConfigField("Boolean", "LOG_HTTP", "true")
         }
         release {
             buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/api/v1/\"")
+            buildConfigField("String", "EDGE_BASE_URL", "\"http://10.0.2.2:5000/\"")
             buildConfigField("Boolean", "LOG_HTTP", "false")
             isMinifyEnabled = false
             proguardFiles(
@@ -93,6 +95,7 @@ dependencies {
     // OkHttp
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
+    implementation(libs.okhttp.sse)
     // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)

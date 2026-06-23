@@ -4,16 +4,20 @@ import com.kiniot.uflex.core.result.AppError
 import com.kiniot.uflex.core.result.AppResult
 import com.kiniot.uflex.core.session.SessionStore
 import com.kiniot.uflex.features.therapy.data.mapper.toDomain
+import com.kiniot.uflex.features.therapy.data.remote.datasource.EdgeProgressDataSource
 import com.kiniot.uflex.features.therapy.data.remote.datasource.TherapyRemoteDataSource
 import com.kiniot.uflex.features.therapy.data.remote.dto.InitiateSessionRequestDto
 import com.kiniot.uflex.features.therapy.domain.model.DailySchedule
+import com.kiniot.uflex.features.therapy.domain.model.LiveRepEvent
 import com.kiniot.uflex.features.therapy.domain.model.SessionProgress
 import com.kiniot.uflex.features.therapy.domain.model.TherapySession
 import com.kiniot.uflex.features.therapy.domain.repository.TherapyRepository
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
 
 class TherapyRepositoryImpl @Inject constructor(
     private val remoteDataSource: TherapyRemoteDataSource,
+    private val edgeProgressDataSource: EdgeProgressDataSource,
     private val sessionStore: SessionStore
 ) : TherapyRepository {
 
@@ -74,6 +78,9 @@ class TherapyRepositoryImpl @Inject constructor(
 
     override suspend fun finalize(sessionId: String): AppResult<TherapySession> =
         remoteDataSource.finalize(sessionId).toSession()
+
+    override fun observeLiveProgress(serialNumber: String): Flow<LiveRepEvent> =
+        edgeProgressDataSource.observeProgress(serialNumber)
 
     private suspend fun currentPatientId(): String? = sessionStore.getSession()?.patientId
 

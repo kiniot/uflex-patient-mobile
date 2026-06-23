@@ -15,11 +15,14 @@ import com.kiniot.uflex.core.result.toUserMessage
 import com.kiniot.uflex.core.ui.UiText
 import com.kiniot.uflex.features.device.domain.model.BleConnectionState
 import com.kiniot.uflex.features.device.domain.usecase.ConnectToAssignedDeviceUseCase
+import com.kiniot.uflex.features.device.domain.usecase.GetMyAssignedDeviceUseCase
 import com.kiniot.uflex.features.device.domain.usecase.ObserveDeviceConnectionStateUseCase
 import com.kiniot.uflex.features.device.domain.usecase.ObserveMotionTelemetryUseCase
+import com.kiniot.uflex.features.therapy.domain.model.LiveRepEvent
 import com.kiniot.uflex.features.therapy.domain.model.SessionStatus
 import com.kiniot.uflex.features.therapy.domain.usecase.FinalizeSessionUseCase
 import com.kiniot.uflex.features.therapy.domain.usecase.GetProgressUseCase
+import com.kiniot.uflex.features.therapy.domain.usecase.ObserveLiveProgressUseCase
 import com.kiniot.uflex.features.therapy.domain.usecase.ReportPainUseCase
 import com.kiniot.uflex.features.therapy.domain.usecase.StartSerieUseCase
 import com.kiniot.uflex.features.therapy.navigation.SessionExecutionRoute
@@ -32,16 +35,22 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 private const val POLL_INTERVAL_MS = 2_500L
+
+// How long to keep the patient in the reference pose after starting a serie, so the
+// kit (which zeros on the new serie via the edge down-channel) captures a clean zero.
+private const val CALIBRATION_HOLD_MS = 5_000L
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -52,6 +61,8 @@ class SessionExecutionViewModel @Inject constructor(
     private val reportPainUseCase: ReportPainUseCase,
     private val finalizeSessionUseCase: FinalizeSessionUseCase,
     private val connectToAssignedDeviceUseCase: ConnectToAssignedDeviceUseCase,
+    private val getMyAssignedDeviceUseCase: GetMyAssignedDeviceUseCase,
+    private val observeLiveProgressUseCase: ObserveLiveProgressUseCase,
     observeDeviceConnectionStateUseCase: ObserveDeviceConnectionStateUseCase,
     observeMotionTelemetryUseCase: ObserveMotionTelemetryUseCase,
     private val snackbarManager: SnackbarManager
@@ -79,6 +90,7 @@ class SessionExecutionViewModel @Inject constructor(
             .launchIn(viewModelScope)
 
         startProgressPolling()
+        startLiveProgress()
     }
 
     private fun startProgressPolling() {
@@ -115,15 +127,68 @@ class SessionExecutionViewModel @Inject constructor(
         }
     }
 
-    fun onStartSerie() {
+    /**
+     * Optimistic live rep counting via the edge SSE stream. Best-effort: the backend poll
+     * above stays authoritative and reconciles every cycle. Failures fall back to polling
+     * silently (no user-facing error); transient LAN blips reconnect with a capped backoff.
+     */
+    private fun startLiveProgress() {
+        viewModelScope.launch {
+            val serial = (getMyAssignedDeviceUseCase() as? AppResult.Success)?.data?.serialNumber
+                ?: return@launch
+            observeLiveProgressUseCase(serial)
+                .retryWhen { _, attempt ->
+                    delay((1_000L * (attempt + 1)).coerceAtMost(10_000L))
+                    true  // keep reconnecting; polling covers the gaps meanwhile
+                }
+                .onEach { event -> applyOptimisticRep(event) }
+                .catch { /* give up on SSE; polling carries on */ }
+                .launchIn(viewModelScope)
+        }
+    }
+
+    /** Bump the running serie's rep count optimistically (absolute tally, never backwards). */
+    private fun applyOptimisticRep(event: LiveRepEvent) = _uiState.update { state ->
+        val progress = state.progress ?: return@update state
+        val running = state.runningSerie ?: return@update state
+        if (event.serieId != running.serieId) return@update state
+        val optimistic = event.repsDetected.coerceAtMost(running.targetRepetitions)
+        if (optimistic <= running.currentRepetitions) return@update state
+        val series = progress.series.map {
+            if (it.serieId == running.serieId) it.copy(currentRepetitions = optimistic) else it
+        }
+        state.copy(progress = progress.copy(series = series))
+    }
+
+    /** Step 1 of the guided start: cue the patient into the reference pose. */
+    fun onRequestStartSerie() {
+        if (_uiState.value.nextPendingSerie == null) return
+        _uiState.update { it.copy(calibrationPromptVisible = true) }
+    }
+
+    fun onDismissCalibrationPrompt() =
+        _uiState.update { it.copy(calibrationPromptVisible = false) }
+
+    /** Step 2: start the serie, then hold the pose while the kit captures its zero. */
+    fun onConfirmStartSerie() {
         val serieId = _uiState.value.nextPendingSerie?.serieId ?: return
         viewModelScope.launch {
-            _uiState.update { it.copy(isStartingSerie = true) }
+            _uiState.update { it.copy(calibrationPromptVisible = false, isStartingSerie = true) }
             when (val result = startSerieUseCase(sessionId, serieId)) {
-                is AppResult.Success -> refreshProgress()
-                is AppResult.Error -> notifyError(result.error)
+                is AppResult.Success -> {
+                    // The kit zeros when it sees the new serie via the edge down-channel;
+                    // keep the patient in the reference pose during that window.
+                    _uiState.update { it.copy(isStartingSerie = false, isCalibrating = true) }
+                    delay(CALIBRATION_HOLD_MS)
+                    _uiState.update { it.copy(isCalibrating = false) }
+                    refreshProgress()
+                }
+
+                is AppResult.Error -> {
+                    notifyError(result.error)
+                    _uiState.update { it.copy(isStartingSerie = false) }
+                }
             }
-            _uiState.update { it.copy(isStartingSerie = false) }
         }
     }
 

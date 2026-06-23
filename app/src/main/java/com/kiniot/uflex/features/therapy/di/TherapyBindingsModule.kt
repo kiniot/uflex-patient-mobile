@@ -1,5 +1,7 @@
 package com.kiniot.uflex.features.therapy.di
 
+import com.kiniot.uflex.features.therapy.data.remote.datasource.EdgeProgressDataSource
+import com.kiniot.uflex.features.therapy.data.remote.datasource.EdgeProgressDataSourceImpl
 import com.kiniot.uflex.features.therapy.data.remote.datasource.TherapyRemoteDataSource
 import com.kiniot.uflex.features.therapy.data.remote.datasource.TherapyRemoteDataSourceImpl
 import com.kiniot.uflex.features.therapy.data.repository.TherapyRepositoryImpl
@@ -16,6 +18,11 @@ abstract class TherapyBindingsModule {
     abstract fun bindTherapyRemoteDataSource(
         impl: TherapyRemoteDataSourceImpl
     ): TherapyRemoteDataSource
+
+    @Binds
+    abstract fun bindEdgeProgressDataSource(
+        impl: EdgeProgressDataSourceImpl
+    ): EdgeProgressDataSource
 
     @Binds
     abstract fun bindTherapyRepository(impl: TherapyRepositoryImpl): TherapyRepository

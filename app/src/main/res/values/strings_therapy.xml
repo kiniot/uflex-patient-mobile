@@ -52,6 +52,10 @@
     <string name="therapy_exec_serie_progress">Exercise %1$d of %2$d</string>
     <string name="therapy_exec_reps">%1$d / %2$d reps</string>
     <string name="therapy_exec_start_serie">Start exercise</string>
+    <string name="therapy_exec_calibrate_title">Get in position</string>
+    <string name="therapy_exec_calibrate_body">Fully extend your arm and hold still — this sets your starting point.</string>
+    <string name="therapy_exec_calibrate_confirm">Calibrate and start</string>
+    <string name="therapy_exec_calibrating">Calibrating… hold the position</string>
     <string name="therapy_exec_running">Exercise in progress</string>
     <string name="therapy_exec_waiting">Ready for the next exercise</string>
     <string name="therapy_exec_all_done">All exercises completed</string>

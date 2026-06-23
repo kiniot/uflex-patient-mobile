@@ -14,6 +14,8 @@ data class SessionExecutionUiState(
     val connectionState: BleConnectionState = BleConnectionState.Idle,
     val latestTelemetry: MotionTelemetry? = null,
     val isStartingSerie: Boolean = false,
+    val calibrationPromptVisible: Boolean = false,
+    val isCalibrating: Boolean = false,
     val isFinalizing: Boolean = false,
     val painDialogVisible: Boolean = false,
     val errorMessage: UiText? = null

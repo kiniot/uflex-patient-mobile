@@ -2,8 +2,10 @@ package com.kiniot.uflex.features.therapy.domain.repository
 
 import com.kiniot.uflex.core.result.AppResult
 import com.kiniot.uflex.features.therapy.domain.model.DailySchedule
+import com.kiniot.uflex.features.therapy.domain.model.LiveRepEvent
 import com.kiniot.uflex.features.therapy.domain.model.SessionProgress
 import com.kiniot.uflex.features.therapy.domain.model.TherapySession
+import kotlinx.coroutines.flow.Flow
 
 interface TherapyRepository {
     /** Today's scheduled routine for the current patient. */
@@ -33,4 +35,7 @@ interface TherapyRepository {
     suspend fun reportPain(sessionId: String, painLevel: Int): AppResult<Unit>
 
     suspend fun finalize(sessionId: String): AppResult<TherapySession>
+
+    /** Live, optimistic rep stream from the edge over SSE (best-effort; polling stays authoritative). */
+    fun observeLiveProgress(serialNumber: String): Flow<LiveRepEvent>
 }

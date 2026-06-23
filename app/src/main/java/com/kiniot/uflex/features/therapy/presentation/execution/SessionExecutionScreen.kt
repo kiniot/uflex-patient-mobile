@@ -87,7 +87,7 @@ fun SessionExecutionScreen(
 
             Phase.Active, Phase.Finished -> ActiveContent(
                 uiState = uiState,
-                onStartSerie = viewModel::onStartSerie,
+                onStartSerie = viewModel::onRequestStartSerie,
                 onFinalize = viewModel::onFinalize,
                 onReportPain = viewModel::onShowPainDialog,
                 onReconnect = { permissionLauncher.launch(blePermissions) }
@@ -100,6 +100,17 @@ fun SessionExecutionScreen(
             onConfirm = viewModel::onReportPain,
             onDismiss = viewModel::onDismissPainDialog
         )
+    }
+
+    if (uiState.calibrationPromptVisible) {
+        CalibrationPromptDialog(
+            onConfirm = viewModel::onConfirmStartSerie,
+            onDismiss = viewModel::onDismissCalibrationPrompt
+        )
+    }
+
+    if (uiState.isCalibrating) {
+        CalibratingDialog()
     }
 }
 
@@ -138,7 +149,7 @@ private fun ActiveContent(
 
             running == null && next != null -> Button(
                 onClick = onStartSerie,
-                enabled = !uiState.isStartingSerie,
+                enabled = !uiState.isStartingSerie && !uiState.isCalibrating,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(18.dp)
             ) { Text(stringResource(R.string.therapy_exec_start_serie)) }
@@ -300,6 +311,50 @@ private fun PainDialog(onConfirm: (Int) -> Unit, onDismiss: () -> Unit) {
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.therapy_exec_cancel)) }
         }
+    )
+}
+
+@Composable
+private fun CalibrationPromptDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.therapy_exec_calibrate_title)) },
+        text = {
+            Text(
+                stringResource(R.string.therapy_exec_calibrate_body),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.therapy_exec_calibrate_confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.therapy_exec_cancel)) }
+        }
+    )
+}
+
+@Composable
+private fun CalibratingDialog() {
+    AlertDialog(
+        onDismissRequest = {},
+        title = { Text(stringResource(R.string.therapy_exec_calibrate_title)) },
+        text = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                CircularProgressIndicator()
+                Text(
+                    stringResource(R.string.therapy_exec_calibrating),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        },
+        confirmButton = {}
     )
 }
 

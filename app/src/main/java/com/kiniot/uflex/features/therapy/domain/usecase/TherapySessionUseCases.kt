@@ -2,10 +2,12 @@ package com.kiniot.uflex.features.therapy.domain.usecase
 
 import com.kiniot.uflex.core.result.AppResult
 import com.kiniot.uflex.features.therapy.domain.model.DailySchedule
+import com.kiniot.uflex.features.therapy.domain.model.LiveRepEvent
 import com.kiniot.uflex.features.therapy.domain.model.SessionProgress
 import com.kiniot.uflex.features.therapy.domain.model.TherapySession
 import com.kiniot.uflex.features.therapy.domain.repository.TherapyRepository
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
 
 class GetDailyScheduleUseCase @Inject constructor(private val repository: TherapyRepository) {
     suspend operator fun invoke(): AppResult<DailySchedule> = repository.getDailySchedule()
@@ -56,4 +58,9 @@ class ReportPainUseCase @Inject constructor(private val repository: TherapyRepos
 class FinalizeSessionUseCase @Inject constructor(private val repository: TherapyRepository) {
     suspend operator fun invoke(sessionId: String): AppResult<TherapySession> =
         repository.finalize(sessionId)
+}
+
+class ObserveLiveProgressUseCase @Inject constructor(private val repository: TherapyRepository) {
+    operator fun invoke(serialNumber: String): Flow<LiveRepEvent> =
+        repository.observeLiveProgress(serialNumber)
 }
