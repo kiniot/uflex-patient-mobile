@@ -6,6 +6,7 @@ import com.kiniot.uflex.features.therapy.data.remote.api.TherapyApiService
 import com.kiniot.uflex.features.therapy.data.remote.dto.CancelSessionRequestDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.ConfirmHardwareRequestDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.DailyScheduleResponseDto
+import com.kiniot.uflex.features.therapy.data.remote.dto.EdgeConnectionResponseDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.InitiateSessionRequestDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.ReportPainRequestDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.SessionProgressResponseDto
@@ -23,6 +24,7 @@ interface TherapyRemoteDataSource {
     suspend fun getProgress(sessionId: String): AppResult<SessionProgressResponseDto>
     suspend fun reportPain(sessionId: String, painLevel: Int): AppResult<Unit>
     suspend fun finalize(sessionId: String): AppResult<TherapySessionResponseDto>
+    suspend fun getEdgeConnection(): AppResult<EdgeConnectionResponseDto>
 }
 
 class TherapyRemoteDataSourceImpl @Inject constructor(
@@ -62,4 +64,7 @@ class TherapyRemoteDataSourceImpl @Inject constructor(
 
     override suspend fun finalize(sessionId: String): AppResult<TherapySessionResponseDto> =
         safeApiCaller.execute { apiService.finalize(sessionId) }
+
+    override suspend fun getEdgeConnection(): AppResult<EdgeConnectionResponseDto> =
+        safeApiCaller.execute { apiService.getEdgeConnection() }
 }

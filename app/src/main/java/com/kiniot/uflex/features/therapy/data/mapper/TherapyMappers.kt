@@ -1,11 +1,13 @@
 package com.kiniot.uflex.features.therapy.data.mapper
 
 import com.kiniot.uflex.features.therapy.data.remote.dto.DailyScheduleResponseDto
+import com.kiniot.uflex.features.therapy.data.remote.dto.EdgeConnectionResponseDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.LiveRepEventDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.SerieProgressResponseDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.SessionProgressResponseDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.TherapySessionResponseDto
 import com.kiniot.uflex.features.therapy.domain.model.DailySchedule
+import com.kiniot.uflex.features.therapy.domain.model.EdgeConnection
 import com.kiniot.uflex.features.therapy.domain.model.LiveRepEvent
 import com.kiniot.uflex.features.therapy.domain.model.ScheduleResolution
 import com.kiniot.uflex.features.therapy.domain.model.SerieProgress
@@ -50,6 +52,12 @@ fun LiveRepEventDto.toDomain(): LiveRepEvent = LiveRepEvent(
     serieId = serieId,
     repsDetected = repsDetected,
     classification = classification
+)
+
+fun EdgeConnectionResponseDto.toDomain(): EdgeConnection = EdgeConnection(
+    localEdgeUrl = localEdgeUrl,
+    pairingToken = pairingToken,
+    expiresAt = expiresAt
 )
 
 private fun String?.toSessionStatus(): SessionStatus = when (this) {

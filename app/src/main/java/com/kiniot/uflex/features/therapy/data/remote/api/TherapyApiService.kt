@@ -3,6 +3,7 @@ package com.kiniot.uflex.features.therapy.data.remote.api
 import com.kiniot.uflex.features.therapy.data.remote.dto.CancelSessionRequestDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.ConfirmHardwareRequestDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.DailyScheduleResponseDto
+import com.kiniot.uflex.features.therapy.data.remote.dto.EdgeConnectionResponseDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.InitiateSessionRequestDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.ReportPainRequestDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.SessionProgressResponseDto
@@ -65,4 +66,8 @@ interface TherapyApiService {
 
     @PATCH("therapy-sessions/{id}/finalize")
     suspend fun finalize(@Path("id") sessionId: String): Response<TherapySessionResponseDto>
+
+    /** Rendezvous: the edge's LAN URL + the pairing token to authenticate the live SSE stream. */
+    @GET("patients/me/edge-connection")
+    suspend fun getEdgeConnection(): Response<EdgeConnectionResponseDto>
 }

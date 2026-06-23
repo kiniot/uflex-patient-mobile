@@ -24,13 +24,8 @@ object NetworkModule {
     @Named("apiBaseUrl")
     fun provideBaseUrl(): String = BuildConfig.API_BASE_URL
 
-    @Provides
-    @Singleton
-    @Named("edgeBaseUrl")
-    fun provideEdgeBaseUrl(): String = BuildConfig.EDGE_BASE_URL
-
-    // SSE client to the edge: NO AuthInterceptor (the edge doesn't use the backend JWT)
-    // and no read timeout (the stream stays idle between reps).
+    // SSE client to the edge: NO AuthInterceptor (the edge uses the per-session pairing token,
+    // set per request, not the backend JWT) and no read timeout (the stream stays idle between reps).
     @Provides
     @Singleton
     @Named("edgeOkHttp")

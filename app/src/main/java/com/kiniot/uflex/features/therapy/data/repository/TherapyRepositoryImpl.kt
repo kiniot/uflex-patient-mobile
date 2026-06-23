@@ -1,5 +1,6 @@
 package com.kiniot.uflex.features.therapy.data.repository
 
+import com.kiniot.uflex.BuildConfig
 import com.kiniot.uflex.core.result.AppError
 import com.kiniot.uflex.core.result.AppResult
 import com.kiniot.uflex.core.session.SessionStore
@@ -13,7 +14,11 @@ import com.kiniot.uflex.features.therapy.domain.model.SessionProgress
 import com.kiniot.uflex.features.therapy.domain.model.TherapySession
 import com.kiniot.uflex.features.therapy.domain.repository.TherapyRepository
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 
 class TherapyRepositoryImpl @Inject constructor(
     private val remoteDataSource: TherapyRemoteDataSource,
@@ -79,8 +84,19 @@ class TherapyRepositoryImpl @Inject constructor(
     override suspend fun finalize(sessionId: String): AppResult<TherapySession> =
         remoteDataSource.finalize(sessionId).toSession()
 
-    override fun observeLiveProgress(serialNumber: String): Flow<LiveRepEvent> =
-        edgeProgressDataSource.observeProgress(serialNumber)
+    // Fetch-then-stream: resolve the edge's LAN URL + pairing token from the backend, then open
+    // the SSE. Re-resolved on every (re)subscription, so a retry after a drop gets a fresh token.
+    // If the rendezvous fails (no active session / edge offline) we throw, letting the ViewModel's
+    // retry/backoff re-attempt while authoritative polling carries on. localEdgeUrl is null until
+    // the edge reports in, so we fall back to the build-time default (useful on the emulator).
+    override fun observeLiveProgress(serialNumber: String): Flow<LiveRepEvent> = flow {
+        val connection = when (val result = remoteDataSource.getEdgeConnection()) {
+            is AppResult.Success -> result.data.toDomain()
+            is AppResult.Error -> throw IllegalStateException("Edge connection unavailable")
+        }
+        val baseUrl = connection.localEdgeUrl ?: BuildConfig.EDGE_BASE_URL
+        emitAll(edgeProgressDataSource.observeProgress(baseUrl, connection.pairingToken, serialNumber))
+    }.flowOn(Dispatchers.IO)
 
     private suspend fun currentPatientId(): String? = sessionStore.getSession()?.patientId
 
