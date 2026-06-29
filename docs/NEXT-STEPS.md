@@ -64,7 +64,37 @@ esta lista. **No alcanza solo**: no frena la causa dominante porque el edge mant
   es el real (debería etiquetarse según la articulación activa — el edge sí lo sabe) ni **cuánto debe
   mover** el paciente (no se muestra el `targetRom` de la serie).
 
-## 4. Calidad / pulido
+## 4. Medición por tipo de movimiento (firmware) — al planear la fase de brazo
+Hoy el firmware solo recibe el **`active_joint`** (ELBOW/WRIST) del edge y con eso elige el par de
+IMUs y mide la **magnitud** de su rotación relativa (codo→`upper-middle` brazo-antebrazo;
+muñeca→`middle-lower` antebrazo-mano). **No recibe el `movementType`.** En el backend, `bodyPart` y
+`movementType {FLEXION, EXTENSION, PRONATION, SUPINATION}` son campos **independientes** del `Exercise`
+(sin acoplamiento). Como **cada serie es un solo movimiento conocido**, medir bien cada uno es tratable.
+
+- **Flexión/extensión:** OK tal cual. La magnitud del par del joint es el ángulo del movimiento
+  (codo→`upper-middle`, muñeca→`middle-lower`).
+- **Pronación/supinación: hueco real.** Es rotación del antebrazo sobre su eje largo; **la mano gira
+  junto con el antebrazo**, así que el par `middle-lower` (antebrazo-mano) ve **~0°**. Hay que medirlo
+  con el **brazo como referencia quieta**: `upper-middle` (brazo-antebrazo, el más limpio, excluye la
+  muñeca) o `upper-lower` (brazo-mano, alternativa robusta al montaje pero suma movimiento de muñeca).
+
+**Mapeo recomendado (cada serie = un movimiento):** codo flex/ext → `upper-middle`; muñeca flex/ext →
+`middle-lower`; pron/sup → `upper-middle` (o `upper-lower`). El `bodyPart` **no** debe decidir el par
+para pron/sup — lo decide el **movimiento**.
+
+**Arreglo:** el edge **ya tiene** `movement_type` en su `ExecutionContext`; falta (1) **incluirlo en el
+payload `active-context`** y (2) que el **firmware elija el par por movimiento** (no solo por joint).
+Convención de uso: en pron/sup, **mantener el brazo quieto** (es la referencia). (Calidad: el backend
+no valida combos `bodyPart`×`movementType` → añadir validación o convención.)
+
+> **Nota — la orientación de montaje de los sensores NO afecta la medición.** Ni la cara hacia la que
+> apunta cada IMU, ni su giro sobre su propio eje. El sistema mide **rotación relativa** entre IMUs
+> adyacentes y resta un **cero por sesión**, así que cualquier offset fijo de montaje se cancela (la
+> magnitud del ángulo es invariante a esa "conjugación"). Lo único que importa al montar es la
+> **rigidez** (que el sensor no se deslice respecto al segmento) y **calibrar en una pose de referencia
+> consistente**. Conclusión para la fase de brazo: montar como sea más cómodo/estable/limpio de cable.
+
+## 5. Calidad / pulido
 - **Edge:** refactor de arquitectura (ACL real IAM↔Detection, app factory + sacar el bootstrap de
   `before_request`) + **OpenAPI generado** (spectree+Pydantic) + true-up de docs viejos del edge
   (`movement-monitoring-api.md` / `demo-expo.md` aún describen el lifecycle `series/start-end`).
@@ -72,7 +102,7 @@ esta lista. **No alcanza solo**: no frena la causa dominante porque el edge mant
   el código de dominio no se reconoce); `requestConnectionPriority(HIGH)` para el gauge BLE.
 - **Dev-data:** provisionar la cuenta `ROLE_EDGE` por el serial real del kit (evitar mismatches).
 
-## 5. Superficie de producto fuera del lazo de terapia
+## 6. Superficie de producto fuera del lazo de terapia
 - App del paciente: **tab "Inicio"** (hoy placeholder), **historial** de sesiones, **sign-up /
   verificación de email** (no implementados), **forgot-password**.
 - **Web clínica** (`uflex-clinic-web`): historial/métricas.
@@ -80,6 +110,7 @@ esta lista. **No alcanza solo**: no frena la causa dominante porque el edge mant
 ---
 
 **Prioridad sugerida:** (1) **ciclo de vida de la sesión** en el móvil (§3) — mata el síntoma del
-buzzer "suena tras terminar" y es contenido; (2) la tanda de hardware (mux + batería, §1) que además
-da el yaw real para la compensación y el ángulo de seguridad; (3) seguridad del SSE (§2);
-(4)/(5) calidad y roadmap de producto.
+buzzer "suena tras terminar" y es contenido; (2) **medición por tipo de movimiento** (§4) — chico
+(edge+firmware) y desbloquea pron/sup correctamente; (3) la tanda de hardware (mux + batería, §1) que
+además da el yaw real para la compensación y el ángulo de seguridad; (4) seguridad del SSE (§2);
+(5)/(6) calidad y roadmap de producto.
