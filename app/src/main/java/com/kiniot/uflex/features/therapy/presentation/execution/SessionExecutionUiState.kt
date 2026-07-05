@@ -18,6 +18,8 @@ data class SessionExecutionUiState(
     val isCalibrating: Boolean = false,
     val isFinalizing: Boolean = false,
     val painDialogVisible: Boolean = false,
+    val terminateDialogVisible: Boolean = false,
+    val isTerminating: Boolean = false,
     val errorMessage: UiText? = null
 ) {
     enum class Phase { Loading, Active, Finished, Failed }

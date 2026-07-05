@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -47,6 +48,7 @@ import com.kiniot.uflex.features.therapy.navigation.SessionExecutionRoute
 import com.kiniot.uflex.features.therapy.navigation.SessionPreparationRoute
 import com.kiniot.uflex.features.therapy.presentation.execution.SessionExecutionScreen
 import com.kiniot.uflex.features.therapy.presentation.execution.SessionExecutionTopBar
+import com.kiniot.uflex.features.therapy.presentation.execution.SessionExecutionViewModel
 import com.kiniot.uflex.features.therapy.presentation.preparation.SessionPreparationScreen
 import com.kiniot.uflex.features.therapy.presentation.preparation.SessionPreparationTopBar
 import com.kiniot.uflex.features.profile.navigation.EditContactInfoRoute
@@ -361,16 +363,20 @@ private fun MainOverlayNavHost(
                 )
             }
         ) {
+            // Hoist the VM so the top-bar arrow and the screen's own back share one instance:
+            // both route "back" through onBackPressed(), which confirms termination mid-session.
+            val executionViewModel: SessionExecutionViewModel = hiltViewModel()
             OverlayScreenContainer(
                 topBar = {
                     SessionExecutionTopBar(
-                        onBackClick = { navController.popBackStack() }
+                        onBackClick = { executionViewModel.onBackPressed() }
                     )
                 }
             ) {
                 SessionExecutionScreen(
                     paddingValues = PaddingValues(),
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    viewModel = executionViewModel
                 )
             }
         }

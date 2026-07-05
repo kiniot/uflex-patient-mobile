@@ -74,6 +74,9 @@
     <string name="therapy_exec_pain_reported">Dolor reportado</string>
     <string name="therapy_exec_finalize">Finalizar sesión</string>
     <string name="therapy_exec_finished">¡Sesión completada!</string>
+    <string name="therapy_exec_terminate_title">¿Terminar la sesión?</string>
+    <string name="therapy_exec_terminate_body">Se cancelará tu sesión en curso y tu kit se detendrá. Podrás iniciar una nueva sesión más tarde.</string>
+    <string name="therapy_exec_terminate_confirm">Terminar</string>
 
     <!-- BLE failures -->
     <string name="ble_fail_device_not_found">No se encontró tu kit. Asegúrate de que esté encendido y cerca.</string>

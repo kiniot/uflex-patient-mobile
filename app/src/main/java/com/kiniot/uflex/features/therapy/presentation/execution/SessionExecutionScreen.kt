@@ -2,6 +2,7 @@ package com.kiniot.uflex.features.therapy.presentation.execution
 
 import android.Manifest
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -59,6 +60,10 @@ fun SessionExecutionScreen(
         viewModel.dismiss.collect { onBack() }
     }
 
+    // Intercept system back while the session is running so leaving confirms termination
+    // (the top-bar arrow routes through the same viewModel.onBackPressed()).
+    BackHandler(enabled = uiState.phase == Phase.Active) { viewModel.onBackPressed() }
+
     val blePermissions = remember {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
@@ -90,7 +95,8 @@ fun SessionExecutionScreen(
                 onStartSerie = viewModel::onRequestStartSerie,
                 onFinalize = viewModel::onFinalize,
                 onReportPain = viewModel::onShowPainDialog,
-                onReconnect = { permissionLauncher.launch(blePermissions) }
+                onReconnect = { permissionLauncher.launch(blePermissions) },
+                onTerminate = viewModel::onRequestTerminate
             )
         }
     }
@@ -99,6 +105,13 @@ fun SessionExecutionScreen(
         PainDialog(
             onConfirm = viewModel::onReportPain,
             onDismiss = viewModel::onDismissPainDialog
+        )
+    }
+
+    if (uiState.terminateDialogVisible) {
+        TerminateDialog(
+            onConfirm = viewModel::onConfirmTerminate,
+            onDismiss = viewModel::onDismissTerminate
         )
     }
 
@@ -120,7 +133,8 @@ private fun ActiveContent(
     onStartSerie: () -> Unit,
     onFinalize: () -> Unit,
     onReportPain: () -> Unit,
-    onReconnect: () -> Unit
+    onReconnect: () -> Unit,
+    onTerminate: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -160,6 +174,19 @@ private fun ActiveContent(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(18.dp)
         ) { Text(stringResource(R.string.therapy_exec_report_pain)) }
+
+        if (uiState.phase == Phase.Active) {
+            TextButton(
+                onClick = onTerminate,
+                enabled = !uiState.isTerminating,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    stringResource(R.string.therapy_cancel_session),
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
     }
 }
 
@@ -306,6 +333,32 @@ private fun PainDialog(onConfirm: (Int) -> Unit, onDismiss: () -> Unit) {
         confirmButton = {
             TextButton(onClick = { onConfirm(level.roundToInt()) }) {
                 Text(stringResource(R.string.therapy_exec_pain_send))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.therapy_exec_cancel)) }
+        }
+    )
+}
+
+@Composable
+private fun TerminateDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.therapy_exec_terminate_title)) },
+        text = {
+            Text(
+                stringResource(R.string.therapy_exec_terminate_body),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(
+                    stringResource(R.string.therapy_exec_terminate_confirm),
+                    color = MaterialTheme.colorScheme.error
+                )
             }
         },
         dismissButton = {

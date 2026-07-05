@@ -15,11 +15,13 @@ import com.kiniot.uflex.core.result.toUserMessage
 import com.kiniot.uflex.core.ui.UiText
 import com.kiniot.uflex.features.device.domain.model.BleConnectionState
 import com.kiniot.uflex.features.device.domain.usecase.ConnectToAssignedDeviceUseCase
+import com.kiniot.uflex.features.device.domain.usecase.DisconnectDeviceUseCase
 import com.kiniot.uflex.features.device.domain.usecase.GetMyAssignedDeviceUseCase
 import com.kiniot.uflex.features.device.domain.usecase.ObserveDeviceConnectionStateUseCase
 import com.kiniot.uflex.features.device.domain.usecase.ObserveMotionTelemetryUseCase
 import com.kiniot.uflex.features.therapy.domain.model.LiveRepEvent
 import com.kiniot.uflex.features.therapy.domain.model.SessionStatus
+import com.kiniot.uflex.features.therapy.domain.usecase.CancelSessionUseCase
 import com.kiniot.uflex.features.therapy.domain.usecase.FinalizeSessionUseCase
 import com.kiniot.uflex.features.therapy.domain.usecase.GetProgressUseCase
 import com.kiniot.uflex.features.therapy.domain.usecase.ObserveLiveProgressUseCase
@@ -52,6 +54,9 @@ private const val POLL_INTERVAL_MS = 2_500L
 // kit (which zeros on the new serie via the edge down-channel) captures a clean zero.
 private const val CALIBRATION_HOLD_MS = 5_000L
 
+// Reason attached to the backend cancel when the patient terminates mid-session.
+private const val CANCEL_REASON = "Cancelled by patient during session"
+
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SessionExecutionViewModel @Inject constructor(
@@ -60,7 +65,9 @@ class SessionExecutionViewModel @Inject constructor(
     private val startSerieUseCase: StartSerieUseCase,
     private val reportPainUseCase: ReportPainUseCase,
     private val finalizeSessionUseCase: FinalizeSessionUseCase,
+    private val cancelSessionUseCase: CancelSessionUseCase,
     private val connectToAssignedDeviceUseCase: ConnectToAssignedDeviceUseCase,
+    private val disconnectDeviceUseCase: DisconnectDeviceUseCase,
     private val getMyAssignedDeviceUseCase: GetMyAssignedDeviceUseCase,
     private val observeLiveProgressUseCase: ObserveLiveProgressUseCase,
     observeDeviceConnectionStateUseCase: ObserveDeviceConnectionStateUseCase,
@@ -223,8 +230,44 @@ class SessionExecutionViewModel @Inject constructor(
         viewModelScope.launch { connectToAssignedDeviceUseCase() }
     }
 
+    /**
+     * Single entry point for the "back" affordances (system back + top-bar arrow). While the
+     * session is running, leaving means terminating it, so we ask to confirm; otherwise we just
+     * dismiss (the session is already finished/failed/loading and nothing is left to cancel).
+     */
+    fun onBackPressed() {
+        if (_uiState.value.phase == Phase.Active) {
+            _uiState.update { it.copy(terminateDialogVisible = true) }
+        } else {
+            viewModelScope.launch { dismissChannel.send(Unit) }
+        }
+    }
+
+    /** Show the terminate confirmation from the explicit "Terminate session" button. */
+    fun onRequestTerminate() = _uiState.update { it.copy(terminateDialogVisible = true) }
+
+    fun onDismissTerminate() = _uiState.update { it.copy(terminateDialogVisible = false) }
+
+    /** Cancel the session on the backend, tear down BLE, and leave the screen. */
+    fun onConfirmTerminate() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(terminateDialogVisible = false, isTerminating = true) }
+            when (val result = cancelSessionUseCase(sessionId, CANCEL_REASON)) {
+                is AppResult.Success -> {
+                    disconnectDeviceUseCase()
+                    finishAndDismiss()
+                }
+
+                is AppResult.Error -> {
+                    notifyError(result.error)
+                    _uiState.update { it.copy(isTerminating = false) }
+                }
+            }
+        }
+    }
+
     private suspend fun finishAndDismiss() {
-        _uiState.update { it.copy(phase = Phase.Finished, isFinalizing = false) }
+        _uiState.update { it.copy(phase = Phase.Finished, isFinalizing = false, isTerminating = false) }
         dismissChannel.send(Unit)
     }
 
