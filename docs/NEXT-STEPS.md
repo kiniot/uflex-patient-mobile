@@ -14,10 +14,14 @@ firmware ya está commiteado, pero reveló dos huecos de fondo — **la sesión 
 **deriva de yaw**. Detalle y próximos pasos en §3 (es el foco inmediato).
 
 ## 1. Integración de hardware (la próxima tanda) — recomendado hacerlo junto
-- **Multiplexor I²C (TCA9548A, ya comprado, sin montar):** aísla cada AK8963 → habilita los **3
-  magnetómetros** y por tanto la **compensación** con yaw real. El firmware ya tiene el **I²C master
-  mode** como base; al montar el mux hay que añadir el **select de canal** (o simplificar a
-  bypass-por-canal). Detalle: `EXECUTION-CONTRACT.md` §13.4 ítem 2.
+- **Multiplexor I²C (TCA9548A) — ✅ ARMADO Y BRING-UP VALIDADO EN PLACA (2026-07-02):** el wearable de
+  fase de brazo está montado (ESP32 + mux + 3 satélites + RGB/buzzer, **motor descartado**) y el bring-up
+  pasó — **2 de 3 magnetómetros leen** estables + responden al giro (bíceps+antebrazo, vía
+  bypass-por-canal; el 3er IMU tiene el AK8963 muerto → a la mano, no crítico para codo). El mux
+  **resuelve** la colisión del AK8963. **Falta el delta de firmware:** pasar de **dos buses** a **un
+  bus + select de canal** (`1<<n → 0x70`) + **bypass-por-canal** (ya no hace falta el I²C master mode);
+  luego validar la **compensación E2E**. También: **`GPIO32` (motor) sin uso** → seguridad = buzzer.
+  Detalle del bring-up: `uflex-embedded-app/docs/arm-phase-assembly-plan.md`.
   - *Alternativa sin mux:* **Plan B** — compensación por rango de yaw sobre 6-DOF con el bias del giro
     calibrado (cierra la compensación sin hardware nuevo).
 - **Batería / telemetría de kit-status:** hoy no implementada (edge README "Not implemented yet").

@@ -119,7 +119,19 @@ backend + optimista por SSE). Identidad cross-service = `serialNumber`.
   `progress`, `ROLE_EDGE` con least-privilege por serial. Ver §13.2 / §13.0.a.
 
 ### Pendiente (qué falta hacer y/o validar)
-- **Magnetómetro operativo — DIAGNÓSTICO CORREGIDO (2026-06-23):** no era el DRDY ni chip clónico,
+- **Magnetómetro — RESUELTO EN PLACA por el mux (2026-07-02):** se montó el **wearable de fase de
+  brazo** (ESP32 + **TCA9548A mux** + 3 satélites MPU9250 + RGB/buzzer; **motor descartado**) y el
+  bring-up pasó: mux en `0x70`, 3× `WHO_AM_I=0x71` por canal, actuadores OK, y **2 de 3
+  magnetómetros leen estables + responden al giro** (bíceps + antebrazo, vía **bypass-por-canal**).
+  El viejo "DRDY nunca listo / Error 263 / mag=0" era la **colisión I²C del AK8963 en `0x0C`** — el
+  **mux lo resuelve** (mags leen aislados por canal). El **3er IMU tiene el AK8963 muerto** (el fallo
+  **sigue al IMU**, confirmado por swap; no es cableado) → ubicado en la **mano (ch2)**, no crítico
+  para codo (par codo = bíceps+antebrazo, ambos con mag bueno); para muñeca haría falta un 4º IMU.
+  **Pendiente aún:** (a) **delta de firmware del mux** — el firmware sigue en **dos buses**; pasarlo a
+  **un bus + select de canal** (`1<<n → 0x70`) + **bypass-por-canal** (ya no hace falta el I²C master
+  mode); (b) **compensación E2E** (edge) con el yaw proximal real; (c) **`GPIO32` (motor) sin uso** →
+  seguridad = buzzer. Detalle: `uflex-embedded-app/docs/arm-phase-assembly-plan.md`.
+- **[previo] Magnetómetro operativo — DIAGNÓSTICO CORREGIDO (2026-06-23):** no era el DRDY ni chip clónico,
   sino **colisión de direcciones I²C** — dos MPU9250 comparten el bus primario y el AK8963 tiene
   dirección fija `0x0C` (con bypass ambos colisionan; con I²C master mode hay contención multi-master y
   la 2ª IMU del bus falla el init). El **master mode lee mag real en una IMU aislada** (probado en
@@ -706,7 +718,7 @@ reconoce) para que ninguna otra feature repita el bug.
 Nota: el conteo de reps solo avanza con el edge+embedded; el gauge BLE funciona con
 un kit/sim conectado.
 
-### 13.4 Embedded (`uflex-embedded-app`) — HECHO (Olas 1–2); LAZO OLA 1 VALIDADO EN PLACA (2026-06-23); SOLO FALTA EL MAGNETÓMETRO (ítem 2)
+### 13.4 Embedded (`uflex-embedded-app`) — HECHO (Olas 1–2); LAZO OLA 1 VALIDADO EN PLACA (2026-06-23); WEARABLE + MUX ARMADO Y BRING-UP OK (2026-07-02) — FALTA EL DELTA DE FIRMWARE DEL MUX (ítem 2)
 
 **Contexto para quien llega nuevo:** este era el último gran desbloqueo y **ya está hecho
 en código** (Olas 1–2). El firmware ahora calcula el **ángulo articular absoluto** del par
@@ -732,7 +744,13 @@ pendiente es el **magnetómetro (ítem 2)**. Builds `esp32_sim` y `esp32_hw` en 
      primario, AK8963 fijo en `0x0C`. El master mode **lee mag real en una IMU aislada** (en placa:
      `HX/HY/HZ` no-cero), pero en el bus compartido hay contención multi-master (la 2ª IMU falla el
      init). Con **3 IMUs y 2 buses** hay que aislar cada AK8963.
-   - *Pendiente:* montar el **multiplexor I²C** (ya comprado) → el master mode lee los 3; o recablear la
+   - *ACTUALIZACIÓN (2026-07-02) — MUX ARMADO Y VALIDADO:* se montó el wearable con el **TCA9548A** y el
+     bring-up en placa confirmó que **2 de 3 magnetómetros leen** (bíceps+antebrazo, vía bypass-por-canal;
+     el 3er IMU tiene el AK8963 muerto → a la mano, no crítico para codo). El mux **resuelve la colisión**.
+     *Pendiente:* el **delta de firmware** — pasar de **dos buses** a **un bus + select de canal**
+     (`1<<n → 0x70`) + **bypass-por-canal**; con el mux ya **no** hace falta el I²C master mode.
+     Detalle del bring-up: `uflex-embedded-app/docs/arm-phase-assembly-plan.md`.
+   - *[previo] Pendiente:* montar el **multiplexor I²C** (ya comprado) → el master mode lee los 3; o recablear la
      IMU **proximal** sola en el 2º bus (solo su mag, que es el que la compensación necesita); o **Plan
      B** (6-DOF). El binario del board quedó en **bypass** (estado validado de la Ola 1) a la espera del
      mux; el master mode vive en el código como base.
@@ -742,6 +760,8 @@ pendiente es el **magnetómetro (ítem 2)**. Builds `esp32_sim` y `esp32_hw` en 
    de rep queda como segundo uso opcional.
 4. **Enforcement local de seguridad — HECHO (Ola 1):** el firmware dispara el actuador
    (vibración + buzzer) al cruzar `maxSafeAngle`, localmente.
+   - *ACTUALIZACIÓN (2026-07-02):* **motor vibrador descartado** (interfiere con el magnetómetro +
+     mete ruido de movimiento) → `GPIO32` sin uso; la **seguridad local pasa a ser solo el buzzer**.
    - *Por qué:* debe ser **inmediato y tolerante a caída de red**; el embedded ya calcula
      el ángulo en tiempo real, así que decide localmente sin viaje al edge.
 

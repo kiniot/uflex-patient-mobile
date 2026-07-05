@@ -124,7 +124,13 @@ Navigation · DataStore) y los siguientes pasos. Para arquitectura y convencione
   ausente/malo → **401**.
 
 ### 1. Validación en hardware (lo que realmente falta) — necesita placa/LAN
-- **Magnetómetro — diagnóstico resuelto (2026-06-23):** no era el DRDY ni chip clónico, sino
+- **Magnetómetro — RESUELTO EN PLACA por el mux (2026-07-02):** se armó el wearable de fase de brazo
+  (ESP32 + **TCA9548A** + 3 satélites + RGB/buzzer, **motor descartado**) y el bring-up pasó: mux `0x70`,
+  3× `0x71` por canal, **2/3 mags leen estables + responden** (bíceps+antebrazo, bypass-por-canal); el
+  3er IMU tiene el AK8963 muerto (el fallo sigue al IMU) → a la mano (no crítico para codo). Falta el
+  **delta de firmware del mux** (dos buses → un bus + select de canal + bypass-por-canal) y la
+  **compensación E2E**. Detalle: `uflex-embedded-app/docs/arm-phase-assembly-plan.md`.
+- **[previo] Magnetómetro — diagnóstico resuelto (2026-06-23):** no era el DRDY ni chip clónico, sino
   **colisión I²C** (2 MPU9250 comparten bus, AK8963 fijo en `0x0C`). El **I²C master mode** (ya en el
   firmware, + reset de la MPU al arranque) **lee mag real en una IMU aislada** (probado en placa), pero
   los 3 mags necesitan aislar cada AK8963 → **multiplexor** (ya comprado, sin montar) o recablear el
