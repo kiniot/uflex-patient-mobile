@@ -76,7 +76,9 @@ fun ProfileScreen(
         else -> ProfileErrorState(
             paddingValues = paddingValues,
             message = uiState.errorMessage,
-            onRetry = viewModel::onRetry
+            isSigningOut = uiState.isSigningOut,
+            onRetry = viewModel::onRetry,
+            onSignOut = viewModel::onSignOut
         )
     }
 }
@@ -97,7 +99,9 @@ private fun ProfileLoadingState(paddingValues: PaddingValues) {
 private fun ProfileErrorState(
     paddingValues: PaddingValues,
     message: com.kiniot.uflex.core.ui.UiText?,
-    onRetry: () -> Unit
+    isSigningOut: Boolean,
+    onRetry: () -> Unit,
+    onSignOut: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -127,8 +131,27 @@ private fun ProfileErrorState(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Button(onClick = onRetry) {
+        Button(onClick = onRetry, enabled = !isSigningOut) {
             Text(text = stringResource(R.string.profile_retry))
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Sign out is also offered here so a patient stuck on a failed profile load
+        // (e.g. a stale session) can still leave the account, like in the happy path.
+        FilledTonalButton(
+            onClick = onSignOut,
+            enabled = !isSigningOut,
+            shape = RoundedCornerShape(18.dp)
+        ) {
+            if (isSigningOut) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(text = stringResource(R.string.profile_sign_out))
+            }
         }
     }
 }
