@@ -75,7 +75,9 @@ fun MainShell(
         stateHolder.SaveableStateProvider(key = selectedTab) {
             when (selectedTab) {
                 0 -> HomeScreen(
-                    paddingValues = innerPadding
+                    paddingValues = innerPadding,
+                    onNavigateToExerciseDetail = onNavigateToExerciseDetail,
+                    onNavigateToSessionPreparation = onNavigateToSessionPreparation
                 )
 
                 1 -> DeviceConnectionScreen(
