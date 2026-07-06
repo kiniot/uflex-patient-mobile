@@ -1,25 +1,42 @@
 package com.kiniot.uflex.features.device.presentation
 
 import android.Manifest
+import android.app.Activity
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.BluetoothSearching
+import androidx.compose.material.icons.filled.Bluetooth
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,21 +44,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.kiniot.uflex.R
+import com.kiniot.uflex.core.designsystem.theme.ExtendedTheme
+import com.kiniot.uflex.core.ui.asString
 import com.kiniot.uflex.features.device.domain.model.BleConnectionState
 import com.kiniot.uflex.features.device.domain.model.Device
-import com.kiniot.uflex.features.device.domain.model.MotionTelemetry
-import com.kiniot.uflex.features.device.domain.model.Quaternion
-import java.util.Locale
 
-/**
- * Quick proof-of-concept screen: checks for an assigned device, lets the patient scan/connect
- * over BLE (requesting the runtime permissions), and prints the live telemetry frames once paired.
- * Strings are inline for speed; a real screen would move them to strings_device.xml + UiText.
- */
 @Composable
 fun DeviceConnectionScreen(
     paddingValues: PaddingValues,
@@ -49,6 +65,7 @@ fun DeviceConnectionScreen(
     viewModel: DeviceConnectionViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     var permissionDenied by remember { mutableStateOf(false) }
 
     val blePermissions = remember {
@@ -58,200 +75,385 @@ fun DeviceConnectionScreen(
             arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
         }
     }
+
+    val enableBtLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) viewModel.onConnect()
+    }
+
+    fun connectWhenBluetoothReady() {
+        val adapter = context.getSystemService(BluetoothManager::class.java)?.adapter
+        when {
+            // No adapter present: let the BLE layer surface BluetoothUnavailable.
+            adapter == null -> viewModel.onConnect()
+            !adapter.isEnabled -> enableBtLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
+            else -> viewModel.onConnect()
+        }
+    }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { result ->
         if (result.values.all { it }) {
             permissionDenied = false
-            viewModel.onConnect()
+            connectWhenBluetoothReady()
         } else {
             permissionDenied = true
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(paddingValues)
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text(text = "Dispositivo uFlex", style = MaterialTheme.typography.titleLarge)
+    // Permissions first (silently proceed if already granted), then ensure Bluetooth is on, then connect.
+    fun ensureReadyThenConnect() {
+        val hasAll = blePermissions.all {
+            ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+        }
+        if (hasAll) {
+            permissionDenied = false
+            connectWhenBluetoothReady()
+        } else {
+            permissionLauncher.launch(blePermissions)
+        }
+    }
 
+    Box(modifier = modifier.fillMaxSize().padding(paddingValues)) {
         when (val check = uiState.deviceCheck) {
-            DeviceCheck.Loading -> CenteredProgress()
+            DeviceCheck.Loading -> CenteredLoading()
+            DeviceCheck.Failed -> DeviceCheckFailed(onRetry = viewModel::loadAssignedDevice)
+            DeviceCheck.None -> NoDeviceView()
+            is DeviceCheck.Assigned -> {
+                val conn = uiState.connectionState
+                when {
+                    conn is BleConnectionState.Connected ->
+                        ConnectedView(
+                            device = check.device,
+                            receivingData = uiState.receivingData,
+                            onDisconnect = viewModel::onDisconnect
+                        )
 
-            DeviceCheck.None -> Text(
-                text = "No tienes un dispositivo asignado.",
-                style = MaterialTheme.typography.bodyLarge
-            )
+                    conn is BleConnectionState.Scanning ||
+                        conn is BleConnectionState.Connecting ||
+                        conn is BleConnectionState.ConfirmingIdentity ->
+                        PairingConnecting(onCancel = viewModel::cancelPairing)
 
-            DeviceCheck.Failed -> {
-                Text(
-                    text = "No se pudo verificar tu dispositivo asignado.",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                OutlinedButton(onClick = { viewModel.loadAssignedDevice() }) {
-                    Text("Reintentar")
+                    uiState.inPairing && conn is BleConnectionState.Failed ->
+                        PairingError(
+                            reason = conn.reason,
+                            onRetry = ::ensureReadyThenConnect,
+                            onEnableBluetooth = { enableBtLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)) },
+                            onGrantPermission = { permissionLauncher.launch(blePermissions) },
+                            onCancel = viewModel::cancelPairing
+                        )
+
+                    uiState.inPairing ->
+                        PairingTurnOn(
+                            permissionDenied = permissionDenied,
+                            onNext = ::ensureReadyThenConnect,
+                            onCancel = viewModel::cancelPairing
+                        )
+
+                    conn is BleConnectionState.Failed &&
+                        conn.reason == BleConnectionState.Failed.Reason.ConnectionLost ->
+                        AssignedLanding(
+                            device = check.device,
+                            connectionState = conn,
+                            isReconnect = true,
+                            onPair = ::ensureReadyThenConnect
+                        )
+
+                    else ->
+                        AssignedLanding(
+                            device = check.device,
+                            connectionState = conn,
+                            isReconnect = false,
+                            onPair = viewModel::startPairing
+                        )
                 }
             }
-
-            is DeviceCheck.Assigned -> AssignedDeviceContent(
-                device = check.device,
-                connectionState = uiState.connectionState,
-                telemetry = uiState.latestTelemetry,
-                framesReceived = uiState.framesReceived,
-                permissionDenied = permissionDenied,
-                onScanAndConnect = {
-                    permissionDenied = false
-                    permissionLauncher.launch(blePermissions)
-                },
-                onDisconnect = viewModel::onDisconnect
-            )
         }
     }
 }
 
+// -------------------------------------------------------------------------------------------------
+// Views
+// -------------------------------------------------------------------------------------------------
+
 @Composable
-private fun AssignedDeviceContent(
-    device: Device,
-    connectionState: BleConnectionState,
-    telemetry: MotionTelemetry?,
-    framesReceived: Int,
-    permissionDenied: Boolean,
-    onScanAndConnect: () -> Unit,
-    onDisconnect: () -> Unit
-) {
-    Card {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text("Asignado", style = MaterialTheme.typography.labelMedium)
-            Text(device.serialNumber, style = MaterialTheme.typography.titleMedium)
-            Text("Modelo: ${device.model}", style = MaterialTheme.typography.bodyMedium)
-            Text("Anunciado: ${device.advertisedName}", style = MaterialTheme.typography.bodyMedium)
-            Text("Batería: ${device.batteryLevel}%", style = MaterialTheme.typography.bodyMedium)
-        }
-    }
-
-    Text(
-        text = "Estado: ${connectionState.toLabel()}",
-        style = MaterialTheme.typography.titleSmall
-    )
-
-    val isBusy = connectionState is BleConnectionState.Scanning ||
-        connectionState is BleConnectionState.Connecting ||
-        connectionState is BleConnectionState.ConfirmingIdentity
-    val isConnected = connectionState is BleConnectionState.Connected
-
-    if (isBusy) {
-        CenteredProgress()
-    }
-
-    if (isConnected) {
-        Button(onClick = onDisconnect, modifier = Modifier.fillMaxWidth()) {
-            Text("Desconectar")
-        }
-    } else {
-        Button(
-            onClick = onScanAndConnect,
-            enabled = !isBusy,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Escanear y conectar")
-        }
-    }
-
-    if (permissionDenied) {
+private fun NoDeviceView() {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
+    ) {
+        HaloIcon(Icons.Filled.Sensors, size = 96.dp, iconSize = 44.dp)
         Text(
-            text = "Se necesitan permisos de Bluetooth para escanear.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.error
+            text = stringResource(R.string.device_none_title),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            text = stringResource(R.string.device_none_subtitle),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
         )
     }
-
-    if (isConnected) {
-        TelemetryContent(telemetry = telemetry, framesReceived = framesReceived)
-    }
 }
 
 @Composable
-private fun TelemetryContent(
-    telemetry: MotionTelemetry?,
-    framesReceived: Int
+private fun AssignedLanding(
+    device: Device,
+    connectionState: BleConnectionState,
+    isReconnect: Boolean,
+    onPair: () -> Unit
 ) {
-    Spacer(modifier = Modifier.height(4.dp))
-    Text("Telemetría en vivo", style = MaterialTheme.typography.titleSmall)
-
-    if (telemetry == null) {
-        Text("Esperando primeras tramas…", style = MaterialTheme.typography.bodyMedium)
-        return
-    }
-
-    Card {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        HaloIcon(Icons.Filled.Sensors, size = 104.dp, iconSize = 50.dp)
+        Spacer(Modifier.height(16.dp))
+        Text(
+            text = stringResource(R.string.device_landing_label),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = device.advertisedName.ifBlank { device.model },
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(14.dp))
+        BatteryRow(device.batteryLevel)
+        Spacer(Modifier.height(10.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            CalibrationChip(device.calibrationStatus)
+            ConnectionChip(connectionState)
+        }
+        if (isReconnect) {
+            Spacer(Modifier.height(14.dp))
             Text(
-                text = "Frames: $framesReceived   Seq: ${telemetry.sequenceNumber}",
-                style = MaterialTheme.typography.bodyMedium
+                text = stringResource(R.string.device_reconnect_banner),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Center
             )
-            QuaternionRow("upper-middle", telemetry.upperMiddleRotation)
-            QuaternionRow("middle-lower", telemetry.middleLowerRotation)
-            QuaternionRow("upper-lower", telemetry.upperLowerRotation)
-            Text(
-                text = "LED: ${telemetry.ledColor}   Buzzer: ${telemetry.buzzerActive}   " +
-                    "Vibración: ${telemetry.vibrationActive}",
-                style = MaterialTheme.typography.bodyMedium
-            )
+        }
+        Spacer(Modifier.height(28.dp))
+        Button(onClick = onPair, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+            Icon(Icons.Filled.Bluetooth, contentDescription = null, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.size(8.dp))
+            Text(stringResource(if (isReconnect) R.string.device_cta_reconnect else R.string.device_cta_pair))
         }
     }
 }
 
 @Composable
-private fun QuaternionRow(label: String, q: Quaternion) {
-    Text(
-        text = "$label  w=${q.w.f()} x=${q.x.f()} y=${q.y.f()} z=${q.z.f()}",
-        style = MaterialTheme.typography.bodySmall,
-        fontFamily = FontFamily.Monospace
-    )
-}
-
-@Composable
-private fun CenteredProgress() {
+private fun PairingTurnOn(
+    permissionDenied: Boolean,
+    onNext: () -> Unit,
+    onCancel: () -> Unit
+) {
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        CircularProgressIndicator()
+        Spacer(Modifier.height(8.dp))
+        WizardStepHeader(R.string.device_step1_of, R.string.device_step1_title, R.string.device_step1_subtitle)
+        Spacer(Modifier.weight(1f))
+        HaloIcon(
+            Icons.Filled.Sensors,
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            size = 200.dp,
+            iconSize = 84.dp,
+            haloAlpha = 0.55f
+        )
+        Spacer(Modifier.weight(1f))
+        if (permissionDenied) {
+            Text(
+                text = stringResource(R.string.device_perm_denied),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(8.dp))
+        }
+        Button(onClick = onNext, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+            Text(stringResource(R.string.device_step_next))
+        }
+        Spacer(Modifier.height(4.dp))
+        TextButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.device_step_cancel))
+        }
     }
 }
 
-private fun Float.f(): String = String.format(Locale.US, "%+.3f", this)
-
-private fun BleConnectionState.toLabel(): String = when (this) {
-    BleConnectionState.Idle -> "Listo"
-    BleConnectionState.Scanning -> "Buscando dispositivo…"
-    BleConnectionState.Connecting -> "Conectando…"
-    BleConnectionState.ConfirmingIdentity -> "Confirmando identidad…"
-    BleConnectionState.Connected -> "Conectado"
-    BleConnectionState.Disconnected -> "Desconectado"
-    is BleConnectionState.Failed -> "Error: ${reason.toLabel()}"
+@Composable
+private fun PairingConnecting(onCancel: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(Modifier.height(8.dp))
+        WizardStepHeader(R.string.device_step2_of, R.string.device_step2_title, R.string.device_step2_subtitle)
+        Spacer(Modifier.weight(1f))
+        PulsingRings(ringColor = MaterialTheme.colorScheme.primary, diameter = 220.dp) {
+            HaloIcon(
+                Icons.AutoMirrored.Filled.BluetoothSearching,
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                size = 96.dp,
+                iconSize = 42.dp
+            )
+        }
+        Spacer(Modifier.weight(1f))
+        Text(
+            text = stringResource(R.string.device_connecting_hint),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(8.dp))
+        TextButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.device_step_cancel))
+        }
+    }
 }
 
-private fun BleConnectionState.Failed.Reason.toLabel(): String = when (this) {
-    BleConnectionState.Failed.Reason.DeviceNotFound -> "no se encontró el dispositivo"
-    BleConnectionState.Failed.Reason.ConnectionLost -> "se perdió la conexión"
-    BleConnectionState.Failed.Reason.IdentityMismatch -> "el serial no coincide"
-    BleConnectionState.Failed.Reason.MissingService -> "servicio BLE no encontrado"
-    BleConnectionState.Failed.Reason.BluetoothUnavailable -> "Bluetooth no disponible"
-    BleConnectionState.Failed.Reason.PermissionDenied -> "permiso denegado"
-    BleConnectionState.Failed.Reason.Unknown -> "error desconocido"
+@Composable
+private fun PairingError(
+    reason: BleConnectionState.Failed.Reason,
+    onRetry: () -> Unit,
+    onEnableBluetooth: () -> Unit,
+    onGrantPermission: () -> Unit,
+    onCancel: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        HaloIcon(
+            Icons.Filled.ErrorOutline,
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+            size = 96.dp,
+            iconSize = 44.dp
+        )
+        Spacer(Modifier.height(16.dp))
+        Text(
+            text = connectionReasonText(reason).asString(LocalContext.current),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(20.dp))
+        Button(onClick = onRetry, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+            Text(stringResource(R.string.device_retry))
+        }
+        if (reason == BleConnectionState.Failed.Reason.BluetoothUnavailable) {
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(onClick = onEnableBluetooth, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+                Text(stringResource(R.string.device_bt_enable))
+            }
+        }
+        if (reason == BleConnectionState.Failed.Reason.PermissionDenied) {
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(onClick = onGrantPermission, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+                Text(stringResource(R.string.device_perm_grant))
+            }
+        }
+        Spacer(Modifier.height(4.dp))
+        TextButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.device_step_cancel))
+        }
+    }
+}
+
+@Composable
+private fun ConnectedView(
+    device: Device,
+    receivingData: Boolean,
+    onDisconnect: () -> Unit
+) {
+    val success = ExtendedTheme.colors.success
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        HaloIcon(
+            Icons.Filled.CheckCircle,
+            containerColor = success.colorContainer,
+            contentColor = success.onColorContainer,
+            size = 104.dp,
+            iconSize = 52.dp
+        )
+        Spacer(Modifier.height(20.dp))
+        Text(
+            text = stringResource(R.string.device_connected_title),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            text = stringResource(R.string.device_connected_subtitle),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(18.dp))
+        BatteryRow(device.batteryLevel)
+        if (receivingData) {
+            Spacer(Modifier.height(10.dp))
+            LivenessDot()
+        }
+        Spacer(Modifier.height(28.dp))
+        OutlinedButton(onClick = onDisconnect, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+            Text(stringResource(R.string.device_disconnect))
+        }
+    }
+}
+
+@Composable
+private fun LivenessDot() {
+    val success = ExtendedTheme.colors.success
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Box(modifier = Modifier.size(8.dp).background(success.color, CircleShape))
+        Text(
+            text = stringResource(R.string.device_liveness_receiving),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun DeviceCheckFailed(onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
+    ) {
+        Text(
+            text = stringResource(R.string.device_check_failed_title),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center
+        )
+        Button(onClick = onRetry, shape = RoundedCornerShape(18.dp)) {
+            Text(stringResource(R.string.device_retry))
+        }
+    }
+}
+
+@Composable
+private fun CenteredLoading() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator()
+    }
 }

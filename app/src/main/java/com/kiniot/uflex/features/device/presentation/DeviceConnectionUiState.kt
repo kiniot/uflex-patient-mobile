@@ -2,18 +2,21 @@ package com.kiniot.uflex.features.device.presentation
 
 import com.kiniot.uflex.features.device.domain.model.BleConnectionState
 import com.kiniot.uflex.features.device.domain.model.Device
-import com.kiniot.uflex.features.device.domain.model.MotionTelemetry
 
 /**
- * UI state for the device-connection proof of concept: first resolve whether the patient has an
- * assigned kit, then drive the BLE link and surface the live telemetry frames.
+ * UI state for the Devices tab: resolve whether the patient has an assigned kit, then drive the
+ * guided pairing wizard and the BLE link. [inPairing] is true once the patient enters the wizard
+ * (turn-on step onward); it is cleared automatically when the link reaches Connected.
  */
 data class DeviceConnectionUiState(
     val deviceCheck: DeviceCheck = DeviceCheck.Loading,
     val connectionState: BleConnectionState = BleConnectionState.Idle,
-    val latestTelemetry: MotionTelemetry? = null,
+    val inPairing: Boolean = false,
     val framesReceived: Int = 0
-)
+) {
+    /** A subtle "it's working" signal on the connected view; BLE frames carry no battery/identity. */
+    val receivingData: Boolean get() = framesReceived > 0
+}
 
 /** Result of asking the backend whether this patient has an assigned device. */
 sealed interface DeviceCheck {

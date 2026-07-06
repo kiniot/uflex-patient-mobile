@@ -38,22 +38,23 @@ class DeviceConnectionViewModel @Inject constructor(
 
     init {
         observeDeviceConnectionStateUseCase()
-            .onEach { state -> _uiState.update { it.copy(connectionState = state) } }
+            .onEach { state ->
+                _uiState.update {
+                    it.copy(
+                        connectionState = state,
+                        // Once the link is up, the wizard is done — the Connected view takes over.
+                        inPairing = if (state is BleConnectionState.Connected) false else it.inPairing
+                    )
+                }
+            }
             .launchIn(viewModelScope)
 
+        // Count frames only as a liveness signal while connected (raw telemetry is not shown).
         observeDeviceConnectionStateUseCase()
             .flatMapLatest { state ->
-                if (state is BleConnectionState.Connected) {
-                    observeMotionTelemetryUseCase()
-                } else {
-                    emptyFlow()
-                }
+                if (state is BleConnectionState.Connected) observeMotionTelemetryUseCase() else emptyFlow()
             }
-            .onEach { frame ->
-                _uiState.update {
-                    it.copy(latestTelemetry = frame, framesReceived = it.framesReceived + 1)
-                }
-            }
+            .onEach { _uiState.update { it.copy(framesReceived = it.framesReceived + 1) } }
             .launchIn(viewModelScope)
 
         loadAssignedDevice()
@@ -71,12 +72,29 @@ class DeviceConnectionViewModel @Inject constructor(
         }
     }
 
+    /** Enter the pairing wizard (Step 1 "turn on"); does not connect yet. */
+    fun startPairing() {
+        _uiState.update { it.copy(inPairing = true) }
+    }
+
+    /** Leave the wizard, aborting any in-flight connection attempt. */
+    fun cancelPairing() {
+        val busy = _uiState.value.connectionState.let {
+            it is BleConnectionState.Scanning || it is BleConnectionState.Connecting ||
+                it is BleConnectionState.ConfirmingIdentity || it is BleConnectionState.Connected
+        }
+        _uiState.update { it.copy(inPairing = false) }
+        if (busy) viewModelScope.launch { disconnectDeviceUseCase() }
+    }
+
+    /** Kick off the atomic scan → connect → confirm-identity flow (after permissions + BT are ready). */
     fun onConnect() {
-        _uiState.update { it.copy(latestTelemetry = null, framesReceived = 0) }
+        _uiState.update { it.copy(framesReceived = 0) }
         viewModelScope.launch { connectToAssignedDeviceUseCase() }
     }
 
     fun onDisconnect() {
+        _uiState.update { it.copy(inPairing = false) }
         viewModelScope.launch { disconnectDeviceUseCase() }
     }
 }
