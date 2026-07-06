@@ -1,12 +1,7 @@
 package com.kiniot.uflex.features.main.presentation.shell
 
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.core.tween
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -15,392 +10,92 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavDestination
-import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
 import com.kiniot.uflex.R
-import com.kiniot.uflex.features.home.navigation.HomeRoute
 import com.kiniot.uflex.features.home.presentation.home.HomeScreen
-import com.kiniot.uflex.features.main.navigation.MainDevicesRoute
-import com.kiniot.uflex.features.main.navigation.MainExercisesRoute
-import com.kiniot.uflex.features.main.navigation.MainHistoryRoute
 import com.kiniot.uflex.features.device.presentation.DeviceConnectionScreen
-import com.kiniot.uflex.features.plan.navigation.ExerciseDetailRoute
-import com.kiniot.uflex.features.plan.presentation.detail.ExerciseDetailScreen
-import com.kiniot.uflex.features.plan.presentation.detail.ExerciseDetailTopBar
 import com.kiniot.uflex.features.plan.presentation.exercises.ExercisesScreen
-import com.kiniot.uflex.features.therapy.navigation.SessionExecutionRoute
-import com.kiniot.uflex.features.therapy.navigation.SessionPreparationRoute
-import com.kiniot.uflex.features.therapy.presentation.execution.SessionExecutionScreen
-import com.kiniot.uflex.features.therapy.presentation.execution.SessionExecutionTopBar
-import com.kiniot.uflex.features.therapy.presentation.execution.SessionExecutionViewModel
-import com.kiniot.uflex.features.therapy.presentation.preparation.SessionPreparationScreen
-import com.kiniot.uflex.features.therapy.presentation.preparation.SessionPreparationTopBar
-import com.kiniot.uflex.features.profile.navigation.EditContactInfoRoute
-import com.kiniot.uflex.features.profile.navigation.ProfileRoute
-import com.kiniot.uflex.features.profile.presentation.EditContactInfoScreen
-import com.kiniot.uflex.features.profile.presentation.EditContactInfoTopBar
-import com.kiniot.uflex.features.profile.presentation.ProfileTopBar
-import com.kiniot.uflex.features.profile.presentation.ProfileScreen
-import kotlinx.serialization.Serializable
 
+/**
+ * The authenticated tab shell: top bar, bottom navigation, and the four tab screens. Detail/overlay
+ * screens are NOT here — they live one level up as siblings of `MainShellRoute` in `MainGraph`,
+ * navigated on the root controller via the callbacks below.
+ *
+ * Tabs are switched with a lightweight index + [rememberSaveableStateHolder] rather than a nested
+ * `NavHost`. This matters: when a detail opens, this shell leaves composition and must be rebuilt
+ * on the way back; rebuilding a nested `NavHost` (with typed-route graph parsing) cost ~450 ms on a
+ * mid-range device, which froze the start of the back transition into a snap. A plain switcher
+ * rebuilds cheaply, so the pop animation stays smooth. Per-tab UI state (scroll, etc.) is preserved
+ * across switches and across the shell's own dispose/restore by the SaveableStateHolder.
+ */
 @Composable
 fun MainShell(
-    onSignedOut: () -> Unit
+    onNavigateToExerciseDetail: (String) -> Unit,
+    onNavigateToSessionPreparation: (String) -> Unit,
+    onNavigateToProfile: () -> Unit
 ) {
-    val mainNavController = rememberNavController()
-    val overlayNavController = rememberNavController()
-    val mainBackStackEntry by mainNavController.currentBackStackEntryAsState()
-    val mainDestination = mainBackStackEntry?.destination
-    val shouldShowBottomBar = mainDestination.shouldShowMainBottomBar()
-    val overlayBackStackEntry by overlayNavController.currentBackStackEntryAsState()
-    val overlayDestination = overlayBackStackEntry?.destination
-    val isOverlayVisible = overlayDestination?.hierarchy?.any {
-        it.hasRoute(ProfileRoute::class) ||
-            it.hasRoute(EditContactInfoRoute::class) ||
-            it.hasRoute(ExerciseDetailRoute::class) ||
-            it.hasRoute(SessionPreparationRoute::class) ||
-            it.hasRoute(SessionExecutionRoute::class)
-    } == true
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    val stateHolder = rememberSaveableStateHolder()
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            topBar = {
-                MainTopBar(
-                    onProfileClick = {
-                        if (!isOverlayVisible) {
-                            overlayNavController.navigate(ProfileRoute) {
-                                launchSingleTop = true
-                            }
-                        }
-                    }
-                )
-            },
-            bottomBar = if (shouldShowBottomBar) {
-                {
-                    NavigationBar {
-                        MainNavigationItem.items.forEach { item ->
-                            NavigationBarItem(
-                                icon = {
-                                    Icon(
-                                        item.icon,
-                                        contentDescription = stringResource(item.labelRes)
-                                    )
-                                },
-                                label = { Text(stringResource(item.labelRes)) },
-                                selected = mainDestination?.hierarchy?.any {
-                                    it.hasRoute(item.route::class)
-                                } == true,
-                                onClick = {
-                                    mainNavController.navigate(item.route) {
-                                        popUpTo(mainNavController.graph.findStartDestination().id) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                }
+    // Back from a secondary tab returns to Home first (mirrors the previous nested-nav behavior);
+    // from Home, this is disabled so back falls through to the root graph (exits the app).
+    BackHandler(enabled = selectedTab != 0) { selectedTab = 0 }
+
+    Scaffold(
+        topBar = {
+            MainTopBar(onProfileClick = onNavigateToProfile)
+        },
+        bottomBar = {
+            NavigationBar {
+                MainNavigationItem.items.forEachIndexed { index, item ->
+                    NavigationBarItem(
+                        icon = {
+                            Icon(
+                                item.icon,
+                                contentDescription = stringResource(item.labelRes)
                             )
-                        }
-                    }
-                }
-            } else {
-                {}
-            }
-        ) { innerPadding ->
-            MainTabsNavHost(
-                innerPadding = innerPadding,
-                navController = mainNavController,
-                onExerciseClick = { exerciseId ->
-                    if (!isOverlayVisible) {
-                        overlayNavController.navigate(ExerciseDetailRoute(exerciseId)) {
-                            launchSingleTop = true
-                        }
-                    }
-                },
-                onStartSession = { treatmentPlanId ->
-                    if (!isOverlayVisible) {
-                        overlayNavController.navigate(SessionPreparationRoute(treatmentPlanId)) {
-                            launchSingleTop = true
-                        }
-                    }
-                }
-            )
-        }
-
-        MainOverlayNavHost(
-            navController = overlayNavController,
-            onSignedOut = onSignedOut
-        )
-    }
-}
-
-@Composable
-private fun MainTabsNavHost(
-    innerPadding: PaddingValues,
-    navController: NavHostController,
-    onExerciseClick: (String) -> Unit,
-    onStartSession: (String) -> Unit
-) {
-    NavHost(
-        navController = navController,
-        startDestination = HomeRoute
-    ) {
-        composable<HomeRoute> {
-            HomeScreen(
-                paddingValues = innerPadding
-            )
-        }
-
-        composable<MainDevicesRoute> {
-            DeviceConnectionScreen(
-                paddingValues = innerPadding
-            )
-        }
-
-        composable<MainExercisesRoute> {
-            ExercisesScreen(
-                paddingValues = innerPadding,
-                onExerciseClick = onExerciseClick,
-                onStartSession = onStartSession
-            )
-        }
-
-        composable<MainHistoryRoute> {
-            MainPlaceholderScreen(
-                title = stringResource(R.string.main_history_placeholder),
-                paddingValues = innerPadding
-            )
-        }
-    }
-}
-
-@Composable
-private fun MainOverlayNavHost(
-    navController: NavHostController,
-    onSignedOut: () -> Unit
-) {
-    NavHost(
-        navController = navController,
-        startDestination = OverlayPlaceholderRoute,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        composable<OverlayPlaceholderRoute> {
-            Box(modifier = Modifier.fillMaxSize())
-        }
-
-        composable<ProfileRoute>(
-            enterTransition = {
-                slideInHorizontally(
-                    initialOffsetX = { fullWidth -> fullWidth },
-                    animationSpec = tween(durationMillis = 240)
-                )
-            },
-            exitTransition = { ExitTransition.None },
-            popEnterTransition = { EnterTransition.None },
-            popExitTransition = {
-                slideOutHorizontally(
-                    targetOffsetX = { fullWidth -> fullWidth },
-                    animationSpec = tween(durationMillis = 220)
-                )
-            }
-        ) {
-            OverlayScreenContainer(
-                topBar = {
-                    ProfileTopBar(
-                        onBackClick = { navController.popBackStack() }
+                        },
+                        label = { Text(stringResource(item.labelRes)) },
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index }
                     )
                 }
-            ) {
-                ProfileScreen(
-                    paddingValues = PaddingValues(),
-                    onEditContactInfo = { profile ->
-                        navController.navigate(
-                            EditContactInfoRoute(
-                                email = profile.email,
-                                countryCode = profile.countryCode,
-                                phoneNumber = profile.phoneNumber
-                            )
-                        )
-                    },
-                    onSignedOut = onSignedOut
-                )
             }
         }
+    ) { innerPadding ->
+        stateHolder.SaveableStateProvider(key = selectedTab) {
+            when (selectedTab) {
+                0 -> HomeScreen(
+                    paddingValues = innerPadding
+                )
 
-        composable<EditContactInfoRoute>(
-            enterTransition = {
-                slideInHorizontally(
-                    initialOffsetX = { fullWidth -> fullWidth },
-                    animationSpec = tween(durationMillis = 240)
+                1 -> DeviceConnectionScreen(
+                    paddingValues = innerPadding
                 )
-            },
-            exitTransition = { ExitTransition.None },
-            popEnterTransition = { EnterTransition.None },
-            popExitTransition = {
-                slideOutHorizontally(
-                    targetOffsetX = { fullWidth -> fullWidth },
-                    animationSpec = tween(durationMillis = 220)
-                )
-            }
-        ) { backStackEntry ->
-            val args = backStackEntry.toRoute<EditContactInfoRoute>()
-            OverlayScreenContainer(
-                topBar = {
-                    EditContactInfoTopBar(
-                        onBackClick = { navController.popBackStack() }
-                    )
-                }
-            ) {
-                EditContactInfoScreen(
-                    paddingValues = PaddingValues(),
-                    initialEmail = args.email,
-                    initialCountryCode = args.countryCode,
-                    initialPhoneNumber = args.phoneNumber,
-                    onSaved = {
-                        navController.navigate(ProfileRoute) {
-                            popUpTo<ProfileRoute> { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    }
-                )
-            }
-        }
 
-        composable<ExerciseDetailRoute>(
-            enterTransition = {
-                slideInHorizontally(
-                    initialOffsetX = { fullWidth -> fullWidth },
-                    animationSpec = tween(durationMillis = 240)
+                2 -> ExercisesScreen(
+                    paddingValues = innerPadding,
+                    onExerciseClick = onNavigateToExerciseDetail,
+                    onStartSession = onNavigateToSessionPreparation
                 )
-            },
-            exitTransition = { ExitTransition.None },
-            popEnterTransition = { EnterTransition.None },
-            popExitTransition = {
-                slideOutHorizontally(
-                    targetOffsetX = { fullWidth -> fullWidth },
-                    animationSpec = tween(durationMillis = 220)
-                )
-            }
-        ) {
-            OverlayScreenContainer(
-                topBar = {
-                    ExerciseDetailTopBar(
-                        onBackClick = { navController.popBackStack() }
-                    )
-                }
-            ) {
-                ExerciseDetailScreen(
-                    paddingValues = PaddingValues()
-                )
-            }
-        }
 
-        composable<SessionPreparationRoute>(
-            enterTransition = {
-                slideInHorizontally(
-                    initialOffsetX = { fullWidth -> fullWidth },
-                    animationSpec = tween(durationMillis = 240)
-                )
-            },
-            exitTransition = { ExitTransition.None },
-            popEnterTransition = { EnterTransition.None },
-            popExitTransition = {
-                slideOutHorizontally(
-                    targetOffsetX = { fullWidth -> fullWidth },
-                    animationSpec = tween(durationMillis = 220)
-                )
-            }
-        ) {
-            OverlayScreenContainer(
-                topBar = {
-                    SessionPreparationTopBar(
-                        onBackClick = { navController.popBackStack() }
-                    )
-                }
-            ) {
-                SessionPreparationScreen(
-                    paddingValues = PaddingValues(),
-                    onBack = { navController.popBackStack() },
-                    onNavigateToExecution = { sessionId ->
-                        navController.navigate(SessionExecutionRoute(sessionId)) {
-                            popUpTo<SessionPreparationRoute> { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    }
-                )
-            }
-        }
-
-        composable<SessionExecutionRoute>(
-            enterTransition = {
-                slideInHorizontally(
-                    initialOffsetX = { fullWidth -> fullWidth },
-                    animationSpec = tween(durationMillis = 240)
-                )
-            },
-            exitTransition = { ExitTransition.None },
-            popEnterTransition = { EnterTransition.None },
-            popExitTransition = {
-                slideOutHorizontally(
-                    targetOffsetX = { fullWidth -> fullWidth },
-                    animationSpec = tween(durationMillis = 220)
-                )
-            }
-        ) {
-            // Hoist the VM so the top-bar arrow and the screen's own back share one instance:
-            // both route "back" through onBackPressed(), which confirms termination mid-session.
-            val executionViewModel: SessionExecutionViewModel = hiltViewModel()
-            OverlayScreenContainer(
-                topBar = {
-                    SessionExecutionTopBar(
-                        onBackClick = { executionViewModel.onBackPressed() }
-                    )
-                }
-            ) {
-                SessionExecutionScreen(
-                    paddingValues = PaddingValues(),
-                    onBack = { navController.popBackStack() },
-                    viewModel = executionViewModel
+                else -> MainPlaceholderScreen(
+                    title = stringResource(R.string.main_history_placeholder),
+                    paddingValues = innerPadding
                 )
             }
         }
     }
 }
-
-@Composable
-private fun OverlayScreenContainer(
-    topBar: @Composable () -> Unit,
-    content: @Composable () -> Unit
-) {
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            topBar()
-            content()
-        }
-    }
-}
-
-@Serializable
-private object OverlayPlaceholderRoute
 
 @Composable
 private fun MainPlaceholderScreen(
@@ -418,16 +113,5 @@ private fun MainPlaceholderScreen(
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onBackground
         )
-    }
-}
-
-private fun NavDestination?.shouldShowMainBottomBar(): Boolean {
-    if (this == null) return true
-
-    return hierarchy.any {
-        it.hasRoute(HomeRoute::class) ||
-            it.hasRoute(MainDevicesRoute::class) ||
-            it.hasRoute(MainExercisesRoute::class) ||
-            it.hasRoute(MainHistoryRoute::class)
     }
 }
