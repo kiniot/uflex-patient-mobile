@@ -4,117 +4,87 @@ Estado y siguiente trabajo del ecosistema uFlex. Para el detalle de diseño y el
 ver [`EXECUTION-CONTRACT.md`](EXECUTION-CONTRACT.md); para el progreso del móvil, [`PROGRESS.md`](PROGRESS.md);
 para probar el lazo de cero, [`E2E-TESTING.md`](E2E-TESTING.md).
 
-## Dónde estamos
-El **lazo de ejecución de terapia está funcionalmente completo y validado E2E en LAN con kit real**
-(kit → edge → backend → móvil, reps reales por SSE; rendezvous + token de pairing). La única pieza
-funcional pendiente del lazo es la **detección de compensación**, que depende del magnetómetro.
+## Dónde estamos (2026-07-06)
 
-Además, se investigó en placa el **disparo en falso del buzzer** (seguridad local del kit): el fix de
-firmware ya está commiteado, pero reveló dos huecos de fondo — **la sesión no termina al salir** y la
-**deriva de yaw**. Detalle y próximos pasos en §3 (es el foco inmediato).
+El **lazo de terapia + detección está funcionalmente completo y validado en placa de punta a punta**,
+incluida la **detección de compensación** (la última pieza funcional, ahora cerrada). Lo que se cerró en
+la última tanda:
 
-## 1. Integración de hardware (la próxima tanda) — recomendado hacerlo junto
-- **Multiplexor I²C (TCA9548A) — ✅ ARMADO Y BRING-UP VALIDADO EN PLACA (2026-07-02):** el wearable de
-  fase de brazo está montado (ESP32 + mux + 3 satélites + RGB/buzzer, **motor descartado**) y el bring-up
-  pasó — **2 de 3 magnetómetros leen** estables + responden al giro (bíceps+antebrazo, vía
-  bypass-por-canal; el 3er IMU tiene el AK8963 muerto → a la mano, no crítico para codo). El mux
-  **resuelve** la colisión del AK8963. **Falta el delta de firmware:** pasar de **dos buses** a **un
-  bus + select de canal** (`1<<n → 0x70`) + **bypass-por-canal** (ya no hace falta el I²C master mode);
-  luego validar la **compensación E2E**. También: **`GPIO32` (motor) sin uso** → seguridad = buzzer.
-  Detalle del bring-up: `uflex-embedded-app/docs/arm-phase-assembly-plan.md`.
-  - *Alternativa sin mux:* **Plan B** — compensación por rango de yaw sobre 6-DOF con el bias del giro
-    calibrado (cierra la compensación sin hardware nuevo).
-- **Batería / telemetría de kit-status:** hoy no implementada (edge README "Not implemented yet").
-- Tras montar: validar la **compensación E2E** (mover el brazo proximal con el codo estancado →
-  `ShoulderCompensation` → edge → backend).
+- **Mux TCA9548A en firmware — HECHO y validado.** Migrado de dos buses a **un bus + select de canal**
+  (`1<<n → 0x70`) con **bypass-por-canal** para el magnetómetro; tolera el IMU con el AK8963 muerto
+  (mano/ch2 → 6-DOF sin spam). Mapeo: bíceps=ch1 (proximal), antebrazo=ch0, mano=ch2. Motor vibrador
+  descartado → **seguridad local = solo buzzer**.
+- **Ángulo de flexión anclado a gravedad — HECHO.** `JointAngleCalculator` ya no usa la magnitud completa
+  del cuaternión (que incluía yaw y se inflaba); ahora es la **distancia accel-based (pitch,roll) desde el
+  cero de sesión**, inmune a la deriva de yaw, acotada a [0,180]. Esto **resolvió el buzzer en falso**
+  (ya no cruza `maxSafeAngle` en reposo) y el **`achieved_rom` inflado** (reps "good" sin llegar al ROM).
+- **Gauge del móvil correcto — HECHO.** El firmware manda ese ángulo calibrado por BLE (frame 53→59 bytes:
+  `jointFlexionDegrees`+`isCalibrated`+`activeJoint`) y el gauge lo muestra: **0 al calibrar, sigue el joint
+  activo (no la muñeca), sin drift**. Reemplaza el `upperLowerRotation` crudo anterior.
+- **Compensación E2E — VALIDADA en placa.** Con el yaw proximal (bíceps) ya real (mux), el
+  `CompensationDetector` del edge dispara `ShoulderCompensation` (proximal barre ≥15° con el codo
+  estancado ≤10°) → forward al backend. Logs de observabilidad añadidos (detectada / reenviada).
+- **Ciclo de vida de la sesión (móvil) — HECHO.** Botón **Terminar sesión** + back con confirmación en la
+  pantalla "En sesión" → `PATCH .../cancel` + desconecta BLE. Mata la causa dominante del buzzer
+  "suena tras terminar".
+- **Robustez del outbox (edge) — HECHO.** El `ForwardingWorker` **cuarentena** (marca FAILED, salta) los
+  rechazos permanentes 4xx (body inválido, 404 de sesión cancelada) en vez de reintentar para siempre;
+  ya no hay *head-of-line blocking* que atasque la cola.
 
-## 2. Seguridad del canal SSE (follow-ons) — `EXECUTION-CONTRACT.md` §13.0.b
+## 1. Medición por tipo de movimiento — pron/sup (el último hueco funcional)
+
+Hoy el firmware elige el par de IMUs por **articulación** (`active_joint` ELBOW/WRIST) y mide su ángulo
+relativo. **Codo flex/ext y muñeca flex/ext funcionan** (`upper-middle` y `middle-lower`). El hueco es la
+**pronación/supinación**: es rotación del antebrazo sobre su eje, y **la mano gira junto con el antebrazo**,
+así que el par `middle-lower` ve **~0°**. Hay que medirla con el **brazo como referencia quieta** →
+par `upper-middle` (o `upper-lower`).
+
+- **Arreglo:** el edge ya tiene `movement_type` en su `ExecutionContext`; falta (1) **incluirlo en
+  `active-context`** y (2) que el **firmware elija el par por movimiento, no solo por articulación**.
+  Convención: en pron/sup, mantener el brazo quieto (es la referencia). *(Calidad: el backend no valida
+  combos `bodyPart`×`movementType` → añadir validación o convención.)*
+- Chico (edge + firmware) y completa la medición de los 4 movimientos.
+
+> **Nota — el montaje de los sensores NO afecta la medición.** El sistema mide **rotación relativa** entre
+> IMUs adyacentes y resta un **cero por sesión**, así que cualquier offset fijo de montaje se cancela. Lo
+> que importa es **rigidez** (que no se deslice) y **calibrar en una pose de referencia consistente**.
+
+## 2. Auto-expiración de sesión inactiva (backend/edge) — red de seguridad
+
+El móvil ya cancela al terminar/salir, pero **cerrar la app de golpe** (kill del proceso) no avisa. Falta
+una red de seguridad server-side: **cerrar sola una sesión sin señales del kit/móvil por X min**. Cubre el
+caso donde el móvil no alcanza a mandar el `cancel`. (Decidido fuera de alcance del fix de móvil; es su
+complemento natural.)
+
+## 3. Seguridad del canal SSE (follow-ons) — `EXECUTION-CONTRACT.md` §13.0.b
+
 El token de pairing ya autentica el SSE. Falta:
 - **TLS** del canal en la LAN (hoy el tráfico va en claro; el token solo autentica).
 - **mDNS** para descubrir el edge sin pasar por la nube (hoy el descubrimiento es por el backend).
 
-## 3. Seguridad local del kit (buzzer) — investigado en placa 2026-06-28
-Se reprodujo en placa el "el buzzer se vuelve loco / suena sin hacer nada / suena aunque el móvil ya
-no esté en tratamiento". **Dos causas raíz** (medidas en serial):
-1. **La sesión nunca termina.** Cerrar la app **no** finaliza/cancela la sesión (no hay acción de
-   terminar en la UI de ejecución), así que el backend/edge mantienen la serie activa
-   (`active-context` sigue devolviendo `hasCtx=1`) y el firmware sigue **legítimamente armado**.
-   Es la causa dominante de "suena cuando ya terminé".
-2. **Deriva de yaw.** Con el magnetómetro roto (6-DOF), el ángulo articular calculado **oscila solo
-   ~±10° en reposo** y cruza `maxSafeAngle` una y otra vez (visto: TRIGGER 110→clear 99→TRIGGER 108…).
-   `absoluteFlexionDegrees` usa la **magnitud completa del cuaternión** (incluye yaw), así que el yaw
-   contamina el ángulo de seguridad. La imu2 (`0x69`) además tiene un **bias de giro ~800 LSB** en reposo.
+## 4. Calidad / pulido
 
-**Fix de firmware — HECHO y commiteado** en `uflex-embedded-app` rama `feature/safety-false-trigger-fix`:
-**TTL del contexto** (desarma + `JointAngleCalculator::reset()` si no hay poll OK en 15 s),
-**calibración diferida hasta quietud** (settle por gyro, umbral 1200 LSB para librar el bias de imu2,
-con fallback por timeout), **histéresis** (limpia ~5° bajo el techo), y **logs de transición**
-(`calib:`/`ctx:`/`safety:`). Verificado en placa. **Reemplaza** el viejo "guard de calibración" de
-esta lista. **No alcanza solo**: no frena la causa dominante porque el edge mantiene viva la sesión
-(el TTL no expira) y la deriva es de hardware.
-
-**Lo nuevo que falta (los arreglos de fondo):**
-- **Ciclo de vida de la sesión (móvil) — PRÓXIMO, mayor impacto:** exponer **terminar/cancelar
-  sesión** en la pantalla "En sesión" y **cancelar al salir/cerrar** la app. El backend ya tiene
-  `PATCH /therapy-sessions/{id}/cancel`; falta cablearlo en el móvil. Al terminar la sesión, el
-  firmware desarma por su ruta de pérdida de contexto (ya implementada).
-- **Auto-expiración de sesión inactiva (backend/edge) — red de seguridad:** cerrar sola una sesión
-  sin señales del kit/móvil por X min, para el caso "cerró la app de golpe" donde el móvil no alcanza
-  a avisar.
-- **Ángulo de seguridad robusto al yaw (firmware) / mux:** o el **mux/Plan B** (ver §1) para tener yaw
-  real, o derivar el ángulo de seguridad solo de la flexión por gravedad (sin yaw) para que no oscile
-  en reposo durante una sesión activa.
-- **UX de la pantalla de ejecución (anotado como tareas):** no se distingue **cuál de los 3 ángulos**
-  es el real (debería etiquetarse según la articulación activa — el edge sí lo sabe) ni **cuánto debe
-  mover** el paciente (no se muestra el `targetRom` de la serie).
-
-## 4. Medición por tipo de movimiento (firmware) — al planear la fase de brazo
-Hoy el firmware solo recibe el **`active_joint`** (ELBOW/WRIST) del edge y con eso elige el par de
-IMUs y mide la **magnitud** de su rotación relativa (codo→`upper-middle` brazo-antebrazo;
-muñeca→`middle-lower` antebrazo-mano). **No recibe el `movementType`.** En el backend, `bodyPart` y
-`movementType {FLEXION, EXTENSION, PRONATION, SUPINATION}` son campos **independientes** del `Exercise`
-(sin acoplamiento). Como **cada serie es un solo movimiento conocido**, medir bien cada uno es tratable.
-
-- **Flexión/extensión:** OK tal cual. La magnitud del par del joint es el ángulo del movimiento
-  (codo→`upper-middle`, muñeca→`middle-lower`).
-- **Pronación/supinación: hueco real.** Es rotación del antebrazo sobre su eje largo; **la mano gira
-  junto con el antebrazo**, así que el par `middle-lower` (antebrazo-mano) ve **~0°**. Hay que medirlo
-  con el **brazo como referencia quieta**: `upper-middle` (brazo-antebrazo, el más limpio, excluye la
-  muñeca) o `upper-lower` (brazo-mano, alternativa robusta al montaje pero suma movimiento de muñeca).
-
-**Mapeo recomendado (cada serie = un movimiento):** codo flex/ext → `upper-middle`; muñeca flex/ext →
-`middle-lower`; pron/sup → `upper-middle` (o `upper-lower`). El `bodyPart` **no** debe decidir el par
-para pron/sup — lo decide el **movimiento**.
-
-**Arreglo:** el edge **ya tiene** `movement_type` en su `ExecutionContext`; falta (1) **incluirlo en el
-payload `active-context`** y (2) que el **firmware elija el par por movimiento** (no solo por joint).
-Convención de uso: en pron/sup, **mantener el brazo quieto** (es la referencia). (Calidad: el backend
-no valida combos `bodyPart`×`movementType` → añadir validación o convención.)
-
-> **Nota — la orientación de montaje de los sensores NO afecta la medición.** Ni la cara hacia la que
-> apunta cada IMU, ni su giro sobre su propio eje. El sistema mide **rotación relativa** entre IMUs
-> adyacentes y resta un **cero por sesión**, así que cualquier offset fijo de montaje se cancela (la
-> magnitud del ángulo es invariante a esa "conjugación"). Lo único que importa al montar es la
-> **rigidez** (que el sensor no se deslice respecto al segmento) y **calibrar en una pose de referencia
-> consistente**. Conclusión para la fase de brazo: montar como sea más cómodo/estable/limpio de cable.
-
-## 5. Calidad / pulido
-- **Edge:** refactor de arquitectura (ACL real IAM↔Detection, app factory + sacar el bootstrap de
+- **Edge:** refactor de arquitectura (ACL real IAM↔Detection, **app factory** + sacar el bootstrap de
   `before_request`) + **OpenAPI generado** (spectree+Pydantic) + true-up de docs viejos del edge
   (`movement-monitoring-api.md` / `demo-expo.md` aún describen el lifecycle `series/start-end`).
-- **Móvil:** centralizar el fix de 404 en `core/network/ApiErrorMapper` (preferir el status HTTP cuando
-  el código de dominio no se reconoce); `requestConnectionPriority(HIGH)` para el gauge BLE.
+  *(Reintento/purga de las entradas FAILED en cuarentena queda como follow-on del outbox.)*
+- **Móvil:** centralizar el fix de 404 en `core/network/ApiErrorMapper` (preferir el status HTTP cuando el
+  código de dominio no se reconoce); `requestConnectionPriority(HIGH)` para suavizar el gauge BLE; mostrar
+  el **`targetRom` de la serie** en ejecución (cuánto debe mover el paciente).
+- **Compensación:** afinar umbrales (`COMPENSATION_PROXIMAL_RANGE_DEG`, ventana) con más datos reales; el
+  primer disparo en placa fue `proximal_range≈23.5`, `angle_range≈9.9`.
 - **Dev-data:** provisionar la cuenta `ROLE_EDGE` por el serial real del kit (evitar mismatches).
+- **Hardware:** batería / telemetría de kit-status (edge README "Not implemented yet").
 
-## 6. Superficie de producto fuera del lazo de terapia
+## 5. Superficie de producto fuera del lazo de terapia
+
 - App del paciente: **tab "Inicio"** (hoy placeholder), **historial** de sesiones, **sign-up /
   verificación de email** (no implementados), **forgot-password**.
 - **Web clínica** (`uflex-clinic-web`): historial/métricas.
 
 ---
 
-**Prioridad sugerida:** (1) **ciclo de vida de la sesión** en el móvil (§3) — mata el síntoma del
-buzzer "suena tras terminar" y es contenido; (2) **medición por tipo de movimiento** (§4) — chico
-(edge+firmware) y desbloquea pron/sup correctamente; (3) la tanda de hardware (mux + batería, §1) que
-además da el yaw real para la compensación y el ángulo de seguridad; (4) seguridad del SSE (§2);
-(5)/(6) calidad y roadmap de producto.
+**Prioridad sugerida:** (1) **pron/sup** (§1) — el último hueco funcional de medición, chico; (2)
+**auto-expiración de sesión** (§2) — cierra el caso "cerró la app de golpe"; (3) **calidad del edge** (§4:
+refactor + OpenAPI + docs); (4) **seguridad del SSE** (§3); (5) **roadmap de producto** (§5). El lazo
+funcional (reps + seguridad + gauge + compensación + ciclo de sesión) ya está cerrado y validado en placa.

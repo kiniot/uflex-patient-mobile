@@ -9,13 +9,15 @@ Vive en el repo del móvil por conveniencia, pero aplica a los cinco proyectos:
 firmware embebido, edge gateway, REST API (backend), app del paciente (este
 repo) y, de forma indirecta, la web clínica.
 
-Estado: decisiones cerradas e **implementadas**. Las **Olas 1 y 2** (lazo de
-conteo en vivo, seguridad local, SSE de progreso, compensación y magnetómetro)
-están **construidas y verificadas headless**; falta la **validación final en
-placa** de las piezas de hardware. El estado autoritativo y actual está en la
-sección de abajo, **"Estado de implementación (Olas 1–2)"**. El §13 es el roadmap
-de diseño original — sus marcadores de estado pueden quedar por detrás de esa
-sección.
+Estado (2026-07-06): decisiones cerradas, **implementadas Y validadas en placa de
+punta a punta** — incluida la **compensación**. Las **Olas 1 y 2** (conteo de reps,
+seguridad local, SSE de progreso, compensación y magnetómetro) están cerradas; el
+**mux TCA9548A**, el **ángulo de flexión anclado a gravedad**, el **gauge calibrado**,
+el **ciclo de vida de sesión** y la **robustez del outbox** también. El estado
+autoritativo está en la sección de abajo, **"Estado de implementación (Olas 1–2)"**
+(ver el bloque **"Cierre en placa (2026-07-06)"** al inicio). El §13 es el roadmap de
+diseño original — sus marcadores pueden quedar por detrás. La lista de próximos pasos
+vive en [`NEXT-STEPS.md`](NEXT-STEPS.md).
 
 ---
 
@@ -53,6 +55,37 @@ articular y lo envía al **edge** (WiFi/HTTP) + telemetría BLE al **móvil**; e
 registro durable, idempotente) + empuja progreso en vivo al móvil por **SSE**; el
 **móvil** orquesta la sesión y muestra el progreso (autoritativo por polling al
 backend + optimista por SSE). Identidad cross-service = `serialNumber`.
+
+### Cierre en placa (2026-07-06) — el lazo + compensación validados end-to-end
+
+Lo que en las slices de abajo figuraba como "validación en placa pendiente" quedó **cerrado y validado en
+el ESP32 real**. Cambios de esta tanda (supersede lo que digan las slices siguientes):
+
+- **Mux TCA9548A (firmware) — HECHO.** Migrado a **un bus + select de canal** (`1<<n → 0x70`) con
+  **bypass-por-canal** para el AK8963; tolera el mag muerto de la mano (ch2 → 6-DOF sin spam). Mapeo:
+  bíceps=ch1 (proximal), antebrazo=ch0, mano=ch2. **Resuelve la colisión I²C** que bloqueaba el
+  magnetómetro (el "DRDF nunca listo / Error 263" de la slice 3 era esa colisión, no un chip clónico).
+  Motor vibrador descartado → **seguridad local = solo buzzer** (`GPIO32` sin uso).
+- **Ángulo de flexión anclado a gravedad (firmware) — HECHO.** `JointAngleCalculator` ya **no** usa la
+  magnitud completa del cuaternión (que incluía yaw y se inflaba, causando buzzer en falso y ROM inflado);
+  ahora es la **distancia accel-based `(pitch,roll)` desde el cero de sesión** (reutiliza
+  `RelativeAngleCalculator`), inmune al yaw, **acotada a [0,180]** (el backend valida `≤180`). Elimina el
+  disparo en falso del buzzer y el `achieved_rom` inflado (§5.7).
+- **Gauge calibrado por BLE (firmware+móvil) — HECHO.** El frame BLE creció 53→**59 bytes**
+  (`jointFlexionDegrees`+`isCalibrated`+`activeJoint`); el móvil muestra ese ángulo calibrado del joint
+  activo (0 al calibrar, sigue el codo, sin drift) en vez del `upperLowerRotation` crudo.
+- **Compensación E2E — VALIDADA en placa.** Con el yaw proximal real, el `CompensationDetector` dispara
+  `ShoulderCompensation` (proximal barre ≥15° con el codo estancado ≤10°) → forward al backend (visto en
+  placa: `proximal_range≈23.5`, `angle_range≈9.9` → HTTP 201). Logs de detección/forward añadidos.
+- **Ciclo de vida de sesión (móvil) — HECHO.** Terminar/cancelar sesión + back con confirmación en "En
+  sesión" → `PATCH .../cancel` + desconecta BLE. Mata la causa dominante del buzzer "suena tras terminar".
+  (El "cerró la app de golpe" queda para la **auto-expiración backend/edge**, aún pendiente — ver NEXT-STEPS.)
+- **Robustez del outbox (edge) — HECHO.** El `ForwardingWorker` **cuarentena** (marca FAILED, salta) los
+  rechazos 4xx permanentes (body inválido, 404 de sesión cancelada) en vez de reintentar para siempre; ya
+  no hay *head-of-line blocking*. `forward()` clasifica SENT/RETRY/DROP.
+
+**Pendiente funcional restante:** **pron/sup** (medición por tipo de movimiento, no solo por articulación —
+§13.4/NEXT-STEPS §1) y la **auto-expiración de sesión inactiva** (backend/edge). El resto es calidad/producto.
 
 ### Ola 1 — Cerrar el lazo (conteo de reps + seguridad local) — HECHO + VERIFICADO
 - **Embedded:** ángulo articular **absoluto** del par activo (codo = par

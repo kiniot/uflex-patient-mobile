@@ -90,6 +90,21 @@ Navigation · DataStore) y los siguientes pasos. Para arquitectura y convencione
   real, **el contador saltó 0→4 en la UI** (luego el polling reconcilia). Solo se inyectó el disparo
   del rep; transporte/SSE/UI son reales.
 
+### `features/therapy` + firmware — Ciclo de vida de sesión + gauge de flexión calibrada ✅ *(validado en placa 2026-07-06)*
+- **Terminar/cancelar sesión:** botón **"Terminar sesión"** y **back con confirmación** en "En sesión" →
+  `PATCH .../cancel` + desconecta BLE (`SessionExecutionViewModel.onBackPressed`/`onConfirmTerminate`; el VM
+  se hoistea en `MainShell` para que la flecha del top bar comparta el flujo). Mata la causa dominante del
+  buzzer "suena tras terminar". (El "cerró la app de golpe" queda para la auto-expiración backend/edge.)
+- **Gauge de flexión calibrada:** el firmware manda por BLE el ángulo de flexión **calibrado y del joint
+  activo** (frame 53→59 bytes: `jointFlexionDegrees`+`isCalibrated`+`activeJoint`); el gauge lo muestra en
+  vez del `upperLowerRotation` crudo. Ahora **arranca en 0 al calibrar, sigue el codo (no la muñeca) y no
+  deriva** en reposo. El parser tolera firmware viejo (lee los campos solo si el frame es largo).
+- **Perfil:** botón **Cerrar sesión** también en la pantalla de error de carga del perfil (antes solo
+  "Reintentar"), para no quedar atrapado con una sesión pegada.
+- **Validado en placa (2026-07-06):** gauge empieza en 0, buzzer solo al cruzar ~105°, cuenta la rep al
+  llegar a 90° y bajar, mover la muñeca no cambia el número; y **compensación E2E** (mover el hombro con el
+  codo quieto → `ShoulderCompensation` → edge → backend). *(Contexto del ángulo/mux/outbox en NEXT-STEPS.)*
+
 ### Soporte / ecosistema
 - **Backend:** se habilitó que el **paciente** pueda iniciar su sesión (`ROLE_PATIENT` en el `POST`
   de initiate) con un **guard de seguridad** (solo puede iniciar para sí mismo). *(cambios en el repo
@@ -103,11 +118,12 @@ Navigation · DataStore) y los siguientes pasos. Para arquitectura y convencione
 
 ## 🔜 Siguientes pasos
 
-> **Lectura para alguien nuevo.** El lazo en vivo **ya está cerrado en código**: el firmware envía
-> muestras enriquecidas a ~10 Hz, el **edge detecta reps + compensación y reenvía al backend**, y el
-> **móvil recibe el progreso por SSE** (con polling de respaldo). Lo que queda es **validar en hardware
-> real** (sobre todo el magnetómetro) y unos pulidos. Estado cross-repo completo en la sección "Estado
-> de implementación (Olas 1–2)" del `EXECUTION-CONTRACT.md`.
+> **Lectura para alguien nuevo (2026-07-06).** El lazo en vivo **ya está cerrado Y validado en placa de
+> punta a punta**, incluida la **compensación** (mux + yaw proximal real), el **ángulo de flexión anclado a
+> gravedad** (resolvió el buzzer en falso + el ROM inflado), el **gauge calibrado**, el **ciclo de vida de
+> sesión** y la **robustez del outbox**. La lista de próximos pasos vigente vive en
+> [`NEXT-STEPS.md`](NEXT-STEPS.md); las subsecciones de abajo son historia de las Olas 1–2. Estado
+> cross-repo en la sección "Estado de implementación (Olas 1–2)" del `EXECUTION-CONTRACT.md`.
 
 ### ✅ Ya hecho (Olas 1–2 — antes figuraba como pendiente aquí)
 - **Embedded:** muestra enriquecida `{target_angle, proximal_signal}` a ~10 Hz, down-channel
@@ -123,30 +139,16 @@ Navigation · DataStore) y los siguientes pasos. Para arquitectura y convencione
   **y validado E2E en LAN (2026-06-23)** en dispositivo físico: contador **3/5→5/5** por SSE; token
   ausente/malo → **401**.
 
-### 1. Validación en hardware (lo que realmente falta) — necesita placa/LAN
-- **Magnetómetro — RESUELTO EN PLACA por el mux (2026-07-02):** se armó el wearable de fase de brazo
-  (ESP32 + **TCA9548A** + 3 satélites + RGB/buzzer, **motor descartado**) y el bring-up pasó: mux `0x70`,
-  3× `0x71` por canal, **2/3 mags leen estables + responden** (bíceps+antebrazo, bypass-por-canal); el
-  3er IMU tiene el AK8963 muerto (el fallo sigue al IMU) → a la mano (no crítico para codo). Falta el
-  **delta de firmware del mux** (dos buses → un bus + select de canal + bypass-por-canal) y la
-  **compensación E2E**. Detalle: `uflex-embedded-app/docs/arm-phase-assembly-plan.md`.
-- **[previo] Magnetómetro — diagnóstico resuelto (2026-06-23):** no era el DRDY ni chip clónico, sino
-  **colisión I²C** (2 MPU9250 comparten bus, AK8963 fijo en `0x0C`). El **I²C master mode** (ya en el
-  firmware, + reset de la MPU al arranque) **lee mag real en una IMU aislada** (probado en placa), pero
-  los 3 mags necesitan aislar cada AK8963 → **multiplexor** (ya comprado, sin montar) o recablear el
-  proximal solo en el 2º bus. Hasta entonces la **compensación con señal real no se valida**;
-  alternativa: **Plan B** (6-DOF). El board quedó re-flasheado en **bypass** (Ola 1 validada) a la
-  espera del mux; el master mode vive en el código. Detalle en `EXECUTION-CONTRACT.md` §13.4 ítem 2.
-- **`.env` del firmware:** en **placeholder** (no commitear secretos); para correr en placa llenar
-  WiFi real + IP del edge. Ya validado el 2026-06-23; `platformio.ini` soporta SSIDs con espacios.
-- **E2E en LAN — ✅ HECHO (2026-06-23) con kit real:** el firmware (`esp32_hw`, WiFi real) alimentó al
-  edge → el detector contó **5 reps reales** → backend (serie 5/5) → la app mostró el conteo + gauge
-  BLE en vivo (18°) y se finalizó la sesión. También el rendezvous+SSE (token válido sube el contador;
-  token malo → 401). `begin()` reordenado (IMUs antes del WiFi). **Lo que aún falta:** el
-  **magnetómetro** (yaw real) para la **compensación** — ver bullet del DRDY arriba.
-- **Hallazgo (seguridad/calibración):** sin la **calibración guiada** previa (cero de sesión mal
-  anclado), el `target_angle` puede cruzar `maxSafeAngle` y el buzzer suena en continuo; considerar un
-  guard en firmware (no enforcar hasta una primera lectura/calibración válida).
+### 1. Validación en hardware — ✅ HECHO (2026-07-06)
+Todo lo que aquí figuraba como pendiente quedó cerrado y validado en placa:
+- **Mux TCA9548A en firmware:** un bus + select de canal + bypass-por-canal; tolera el AK8963 muerto de la
+  mano (6-DOF). Reemplazó el I²C master mode.
+- **Ángulo de flexión anclado a gravedad** (distancia accel `(pitch,roll)` desde el cero, acotado a 180) →
+  **resolvió el buzzer en falso** (ya no cruza `maxSafeAngle` en reposo por deriva de yaw) y el
+  **`achieved_rom` inflado**. El firmware lo manda por BLE y el gauge lo muestra.
+- **Compensación E2E validada:** con el yaw proximal real, el `CompensationDetector` dispara
+  `ShoulderCompensation` → backend.
+- **Robustez del outbox:** el edge cuarentena los rechazos 4xx permanentes (ya no hay head-of-line block).
 
 ### 2. Auth del SSE (§13.0.b) — ✅ HECHO y validado E2E en LAN (2026-06-23)
 - **Mecanismo (rendezvous por backend, no mDNS):** el edge reporta su URL de LAN
