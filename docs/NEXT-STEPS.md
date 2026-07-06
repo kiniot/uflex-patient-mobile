@@ -30,20 +30,19 @@ la última tanda:
 - **Robustez del outbox (edge) — HECHO.** El `ForwardingWorker` **cuarentena** (marca FAILED, salta) los
   rechazos permanentes 4xx (body inválido, 404 de sesión cancelada) en vez de reintentar para siempre;
   ya no hay *head-of-line blocking* que atasque la cola.
+- **Pron/sup — HECHO y validado en placa (2026-07-06).** El firmware elige el par de IMUs **por movimiento**,
+  no solo por articulación: pron/sup mide el antebrazo contra el brazo quieto (`upper-middle`); flex/ext
+  quedan igual. El edge manda `active_movement` en `active-context`. Con los 4 movimientos medibles, **la
+  medición de la fase de brazo está completa.**
 
-## 1. Medición por tipo de movimiento — pron/sup (el último hueco funcional)
+## 1. Medición por tipo de movimiento — pron/sup — ✅ HECHO (2026-07-06)
 
-Hoy el firmware elige el par de IMUs por **articulación** (`active_joint` ELBOW/WRIST) y mide su ángulo
-relativo. **Codo flex/ext y muñeca flex/ext funcionan** (`upper-middle` y `middle-lower`). El hueco es la
-**pronación/supinación**: es rotación del antebrazo sobre su eje, y **la mano gira junto con el antebrazo**,
-así que el par `middle-lower` ve **~0°**. Hay que medirla con el **brazo como referencia quieta** →
-par `upper-middle` (o `upper-lower`).
-
-- **Arreglo:** el edge ya tiene `movement_type` en su `ExecutionContext`; falta (1) **incluirlo en
-  `active-context`** y (2) que el **firmware elija el par por movimiento, no solo por articulación**.
-  Convención: en pron/sup, mantener el brazo quieto (es la referencia). *(Calidad: el backend no valida
-  combos `bodyPart`×`movementType` → añadir validación o convención.)*
-- Chico (edge + firmware) y completa la medición de los 4 movimientos.
+El firmware ya elige el par de IMUs **por movimiento**: **pron/sup → `upper-middle`** (antebrazo vs brazo
+quieto, porque la mano gira con el antebrazo y `middle-lower` vería ~0°); **flex/ext → por articulación**
+(codo→`upper-middle`, muñeca→`middle-lower`), sin cambios. El edge añade `active_movement` al
+`active-context`; el firmware lo parsea (compat hacia atrás: ausente → selección solo-por-joint).
+**Convención de uso:** en pron/sup, brazo quieto (referencia) y antebrazo **no vertical** (limitación de
+gravedad). *(Queda como calidad: el backend no valida combos `bodyPart`×`movementType`.)*
 
 > **Nota — el montaje de los sensores NO afecta la medición.** El sistema mide **rotación relativa** entre
 > IMUs adyacentes y resta un **cero por sesión**, así que cualquier offset fijo de montaje se cancela. Lo
@@ -84,7 +83,8 @@ El token de pairing ya autentica el SSE. Falta:
 
 ---
 
-**Prioridad sugerida:** (1) **pron/sup** (§1) — el último hueco funcional de medición, chico; (2)
-**auto-expiración de sesión** (§2) — cierra el caso "cerró la app de golpe"; (3) **calidad del edge** (§4:
-refactor + OpenAPI + docs); (4) **seguridad del SSE** (§3); (5) **roadmap de producto** (§5). El lazo
-funcional (reps + seguridad + gauge + compensación + ciclo de sesión) ya está cerrado y validado en placa.
+**Prioridad sugerida:** con **pron/sup ya cerrado (§1)**, la **medición de la fase de brazo está completa**.
+Lo que sigue: (1) **auto-expiración de sesión** (§2) — cierra el caso "cerró la app de golpe"; (2)
+**calidad del edge** (§4: refactor + OpenAPI + docs); (3) **seguridad del SSE** (§3); (4) **roadmap de
+producto** (§5). El lazo funcional (reps + seguridad + gauge + compensación + ciclo de sesión + los 4
+movimientos) ya está cerrado y validado en placa.

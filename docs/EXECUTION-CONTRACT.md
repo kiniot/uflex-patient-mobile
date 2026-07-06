@@ -83,9 +83,13 @@ el ESP32 real**. Cambios de esta tanda (supersede lo que digan las slices siguie
 - **Robustez del outbox (edge) — HECHO.** El `ForwardingWorker` **cuarentena** (marca FAILED, salta) los
   rechazos 4xx permanentes (body inválido, 404 de sesión cancelada) en vez de reintentar para siempre; ya
   no hay *head-of-line blocking*. `forward()` clasifica SENT/RETRY/DROP.
+- **Pron/sup (medición por movimiento) — HECHO.** El firmware elige el par de IMUs **por movimiento**, no
+  solo por articulación: pron/sup → `upper-middle` (antebrazo vs brazo quieto); flex/ext → por articulación
+  (igual). El edge manda `active_movement` en `active-context`. **Los 4 movimientos son medibles.**
 
-**Pendiente funcional restante:** **pron/sup** (medición por tipo de movimiento, no solo por articulación —
-§13.4/NEXT-STEPS §1) y la **auto-expiración de sesión inactiva** (backend/edge). El resto es calidad/producto.
+**Pendiente funcional restante:** la **auto-expiración de sesión inactiva** (backend/edge) para el caso "cerró
+la app de golpe". Con eso y lo de arriba, la medición de la fase de brazo está completa; el resto es
+calidad/producto (ver `NEXT-STEPS.md`).
 
 ### Ola 1 — Cerrar el lazo (conteo de reps + seguridad local) — HECHO + VERIFICADO
 - **Embedded:** ángulo articular **absoluto** del par activo (codo = par
