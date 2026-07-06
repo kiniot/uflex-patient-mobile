@@ -43,7 +43,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kiniot.uflex.R
 import com.kiniot.uflex.core.ui.asString
-import com.kiniot.uflex.features.device.data.mapper.toEulerAngles
 import com.kiniot.uflex.features.therapy.presentation.execution.SessionExecutionUiState.Phase
 import kotlin.math.roundToInt
 
@@ -199,10 +198,16 @@ private fun GaugeCard(uiState: SessionExecutionUiState) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         val telemetry = uiState.latestTelemetry
-        val pitch = telemetry?.upperLowerRotation?.toEulerAngles()?.pitchDegrees
+        // The kit sends the calibrated, gravity-anchored flexion of the active joint; show it only
+        // once calibrated (reads 0 at the reference pose) and connected. "—" otherwise.
+        val flexionDegrees = if (telemetry != null && telemetry.isCalibrated && uiState.connected) {
+            telemetry.jointFlexionDegrees
+        } else {
+            null
+        }
         Text(
-            text = if (pitch != null && uiState.connected) {
-                stringResource(R.string.therapy_exec_degrees, pitch.roundToInt())
+            text = if (flexionDegrees != null) {
+                stringResource(R.string.therapy_exec_degrees, flexionDegrees.roundToInt())
             } else {
                 "—"
             },

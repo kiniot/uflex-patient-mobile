@@ -11,18 +11,24 @@ import kotlin.math.asin
 import kotlin.math.atan2
 
 /**
- * Decodes the firmware's fixed 53-byte little-endian telemetry frame into a [MotionTelemetry].
- * This is the Kotlin counterpart of scripts/decode_ble_telemetry.py in uflex-embedded-app and
- * must stay in sync with ble_motion_telemetry_serializer.h.
+ * Decodes the firmware's little-endian telemetry frame into a [MotionTelemetry]. This is the Kotlin
+ * counterpart of scripts/decode_ble_telemetry.py in uflex-embedded-app and must stay in sync with
+ * ble_motion_telemetry_serializer.h.
  *
  * Wire layout (all multi-byte fields little-endian):
  *   0..47  : 3 quaternions, each (w, x, y, z) as float32
- *   48     : ledColor        (uint8)
- *   49     : buzzerActive     (uint8, 0/1)
- *   50     : vibrationActive  (uint8, 0/1)
- *   51..52 : sequenceNumber   (uint16)
+ *   48     : ledColor            (uint8)
+ *   49     : buzzerActive        (uint8, 0/1)
+ *   50     : vibrationActive     (uint8, 0/1)
+ *   51..52 : sequenceNumber      (uint16)
+ *   53..56 : jointFlexionDegrees (float32)   — extended frame only
+ *   57     : isCalibrated        (uint8, 0/1) — extended frame only
+ *   58     : activeJoint         (uint8)      — extended frame only
  *
- * @return the decoded frame, or null when the payload is shorter than the expected size.
+ * The extended fields are read only when the frame is long enough (older firmware sends 53 bytes),
+ * so they decode as absent rather than throwing.
+ *
+ * @return the decoded frame, or null when the payload is shorter than the base size.
  */
 fun ByteArray.toMotionTelemetry(): MotionTelemetry? {
     if (size < UflexGattProfile.TELEMETRY_WIRE_SIZE_BYTES) {
@@ -40,6 +46,11 @@ fun ByteArray.toMotionTelemetry(): MotionTelemetry? {
     val vibrationActive = (buffer.get().toInt() and 0xFF) != 0
     val sequenceNumber = buffer.short.toInt() and 0xFFFF
 
+    val hasExtended = size >= UflexGattProfile.TELEMETRY_WIRE_SIZE_EXTENDED_BYTES
+    val jointFlexionDegrees = if (hasExtended) buffer.float else null
+    val isCalibrated = if (hasExtended) (buffer.get().toInt() and 0xFF) != 0 else false
+    val activeJoint = if (hasExtended) (buffer.get().toInt() and 0xFF) else null
+
     return MotionTelemetry(
         upperMiddleRotation = upperMiddle,
         middleLowerRotation = middleLower,
@@ -47,7 +58,10 @@ fun ByteArray.toMotionTelemetry(): MotionTelemetry? {
         ledColor = ledColor,
         buzzerActive = buzzerActive,
         vibrationActive = vibrationActive,
-        sequenceNumber = sequenceNumber
+        sequenceNumber = sequenceNumber,
+        jointFlexionDegrees = jointFlexionDegrees,
+        isCalibrated = isCalibrated,
+        activeJoint = activeJoint
     )
 }
 
