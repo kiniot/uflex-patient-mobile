@@ -2,4 +2,13 @@
 <resources>
 
     <style name="Theme.UFlex" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Android 12 SplashScreen API window: brand deep-teal background with the brandmark
+         rendered on a white circle, matching the Compose brand token for a seamless handoff. -->
+    <style name="Theme.UFlex.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/brand_splash_bg</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/logo_uflex_brandmark_original</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/brand_splash_icon_bg</item>
+        <item name="postSplashScreenTheme">@style/Theme.UFlex</item>
+    </style>
 </resources>
