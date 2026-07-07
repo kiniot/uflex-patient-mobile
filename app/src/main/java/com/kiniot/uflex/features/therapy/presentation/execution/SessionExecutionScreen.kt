@@ -64,13 +64,17 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kiniot.uflex.R
+import com.kiniot.uflex.core.designsystem.components.AvatarPose
 import com.kiniot.uflex.core.designsystem.components.HaloIcon
 import com.kiniot.uflex.core.designsystem.components.Pill
-import com.kiniot.uflex.core.designsystem.components.RadialGauge
+import com.kiniot.uflex.core.designsystem.components.TherapyAvatar
 import com.kiniot.uflex.core.designsystem.theme.ExtendedTheme
 import com.kiniot.uflex.core.ui.asString
 import com.kiniot.uflex.features.device.presentation.KitStatusChip
+import com.kiniot.uflex.features.device.presentation.ledAccentColor
+import com.kiniot.uflex.features.plan.domain.model.BodyPart
 import com.kiniot.uflex.features.plan.domain.model.Exercise
+import com.kiniot.uflex.features.plan.domain.model.MovementType
 import com.kiniot.uflex.features.plan.presentation.detail.ExerciseVideoPlayer
 import com.kiniot.uflex.features.plan.presentation.exercises.toUiText
 import com.kiniot.uflex.features.therapy.presentation.execution.SessionExecutionUiState.Phase
@@ -264,9 +268,17 @@ private fun GaugeCard(uiState: SessionExecutionUiState) {
             null
         }
         val degreesTemplate = stringResource(R.string.therapy_exec_degrees)
+        // The kit's LED accent tints the active-joint halo; the buzzer drives a pulse near the hand,
+        // so the avatar itself carries the actuator feedback (the chips below stay as text labels).
+        val glowColor = ledAccentColor(telemetry?.ledColor)
+        val pose = avatarPoseFor(uiState.focusedExercise)
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            RadialGauge(
+            TherapyAvatar(
                 degrees = flexionDegrees,
+                pose = pose,
+                jointGlowColor = glowColor,
+                buzzerActive = telemetry?.buzzerActive == true,
+                modifier = Modifier.size(width = 200.dp, height = 240.dp),
                 valueLabel = { String.format(degreesTemplate, it) }
             )
         }
@@ -280,6 +292,15 @@ private fun GaugeCard(uiState: SessionExecutionUiState) {
             ActuatorChip(label = stringResource(R.string.therapy_exec_buzzer), active = telemetry?.buzzerActive == true)
         }
     }
+}
+
+/** Picks which joint/axis the avatar animates from the focused exercise's body part + movement. */
+private fun avatarPoseFor(exercise: Exercise?): AvatarPose = when (exercise?.movementType) {
+    MovementType.Pronation -> AvatarPose.ForearmPronation
+    MovementType.Supination -> AvatarPose.ForearmSupination
+    MovementType.Flexion, MovementType.Extension ->
+        if (exercise.bodyPart == BodyPart.Wrist) AvatarPose.WristFlexion else AvatarPose.ElbowFlexion
+    MovementType.Unknown, null -> AvatarPose.Rest
 }
 
 @Composable

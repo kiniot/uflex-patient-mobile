@@ -141,31 +141,50 @@ fun ConnectionChip(state: BleConnectionState) {
     ColoredPill(text = stringResource(labelRes), container = container, content = content)
 }
 
+/**
+ * The kit-LED accent (the status "dot") as a single color, mapped with the same semantics as
+ * [KitStatusChip]. Reused by the in-session avatar to tint the active-joint halo so the live
+ * feedback stays consistent with the chip.
+ */
+@Composable
+fun ledAccentColor(ledColor: LedColor?): Color {
+    val extended = ExtendedTheme.colors
+    val scheme = MaterialTheme.colorScheme
+    return when (ledColor) {
+        LedColor.Green -> extended.success.color
+        LedColor.Blue, LedColor.Cyan -> extended.info.color
+        LedColor.Yellow -> extended.warning.color
+        LedColor.Red, LedColor.Magenta -> scheme.error
+        LedColor.Off, LedColor.Unknown, null -> scheme.outline
+    }
+}
+
 @Composable
 fun KitStatusChip(ledColor: LedColor?) {
     val extended = ExtendedTheme.colors
     val scheme = MaterialTheme.colorScheme
-    val (container, content, dot, labelRes) = when (ledColor) {
+    val dot = ledAccentColor(ledColor)
+    val (container, content, labelRes) = when (ledColor) {
         LedColor.Green ->
-            Quad(extended.success.colorContainer, extended.success.onColorContainer, extended.success.color,
+            Triple(extended.success.colorContainer, extended.success.onColorContainer,
                 R.string.device_kit_status_ready)
         LedColor.Blue ->
-            Quad(extended.info.colorContainer, extended.info.onColorContainer, extended.info.color,
+            Triple(extended.info.colorContainer, extended.info.onColorContainer,
                 R.string.device_kit_status_syncing)
         LedColor.Cyan ->
-            Quad(extended.info.colorContainer, extended.info.onColorContainer, extended.info.color,
+            Triple(extended.info.colorContainer, extended.info.onColorContainer,
                 R.string.device_kit_status_calibrating)
         LedColor.Yellow ->
-            Quad(extended.warning.colorContainer, extended.warning.onColorContainer, extended.warning.color,
+            Triple(extended.warning.colorContainer, extended.warning.onColorContainer,
                 R.string.device_kit_status_waiting_context)
         LedColor.Red ->
-            Quad(scheme.errorContainer, scheme.onErrorContainer, scheme.error,
+            Triple(scheme.errorContainer, scheme.onErrorContainer,
                 R.string.device_kit_status_safety_alert)
         LedColor.Magenta ->
-            Quad(scheme.errorContainer, scheme.onErrorContainer, scheme.error,
+            Triple(scheme.errorContainer, scheme.onErrorContainer,
                 R.string.device_kit_status_error)
         LedColor.Off, LedColor.Unknown, null ->
-            Quad(scheme.surfaceVariant, scheme.onSurfaceVariant, scheme.outline,
+            Triple(scheme.surfaceVariant, scheme.onSurfaceVariant,
                 R.string.device_kit_status_unknown)
     }
     Surface(shape = RoundedCornerShape(50), color = container) {
@@ -197,8 +216,6 @@ private fun ColoredPill(text: String, container: Color, content: Color) {
         )
     }
 }
-
-private data class Quad<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 
 /** Battery indicator. The value is the backend's last-known reading, not live BLE. */
 @Composable
