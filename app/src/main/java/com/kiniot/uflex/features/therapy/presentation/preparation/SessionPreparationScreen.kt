@@ -4,24 +4,34 @@ import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bluetooth
+import androidx.compose.material.icons.filled.BluetoothDisabled
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Sensors
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -34,13 +44,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kiniot.uflex.R
+import com.kiniot.uflex.core.designsystem.components.ColoredPill
+import com.kiniot.uflex.core.designsystem.components.HaloIcon
+import com.kiniot.uflex.core.designsystem.components.PulsingRings
+import com.kiniot.uflex.core.designsystem.theme.ExtendedTheme
 import com.kiniot.uflex.core.ui.asString
 import com.kiniot.uflex.features.device.domain.model.BleConnectionState
 import com.kiniot.uflex.features.therapy.presentation.preparation.SessionPreparationUiState.Phase
@@ -97,15 +114,17 @@ fun SessionPreparationScreen(
 
         Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
             when (uiState.phase) {
-                Phase.Loading -> CircularProgressIndicator()
+                Phase.Loading -> Progress(stringResource(R.string.therapy_initiating))
 
                 Phase.NoRoutine -> InfoState(
+                    icon = Icons.Default.Info,
                     title = stringResource(R.string.therapy_no_routine_title),
                     subtitle = stringResource(R.string.therapy_no_routine_subtitle),
                     onBack = onBack
                 )
 
                 Phase.NoDevice -> InfoState(
+                    icon = Icons.Default.BluetoothDisabled,
                     title = stringResource(R.string.therapy_no_device_title),
                     subtitle = stringResource(R.string.therapy_no_device_subtitle),
                     onBack = onBack
@@ -119,16 +138,18 @@ fun SessionPreparationScreen(
                     onBegin = { withPermissions { viewModel.onBegin() } }
                 )
 
-                Phase.Resume -> CenteredCard {
+                Phase.Resume -> CenteredCard(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         stringResource(R.string.therapy_resume_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
                     )
                     Text(
                         stringResource(R.string.therapy_resume_subtitle),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
                     )
                     PermissionHint(permissionDenied)
                     Button(
@@ -140,7 +161,7 @@ fun SessionPreparationScreen(
 
                 Phase.Initiating -> Progress(stringResource(R.string.therapy_initiating))
 
-                Phase.Connecting -> Progress(uiState.connectionState.toUiText().asString(LocalContext.current))
+                Phase.Connecting -> ConnectingProgress(uiState.connectionState.toUiText().asString(LocalContext.current))
 
                 Phase.AwaitingSensors -> SensorsContent(onConfirm = viewModel::onConfirmSensors)
 
@@ -176,6 +197,8 @@ fun SessionPreparationScreen(
                 )
             }
         }
+
+        Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
     }
 }
 
@@ -186,19 +209,25 @@ private fun StepIndicator(currentStep: Int) {
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         repeat(4) { index ->
-            val color = if (index <= currentStep) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.surfaceContainerHighest
-            }
+            val targetFill = if (index <= currentStep) 1f else 0f
+            val fillFraction by animateFloatAsState(
+                targetValue = targetFill,
+                animationSpec = tween(durationMillis = 400),
+                label = "step$index"
+            )
+            val color = lerp(
+                MaterialTheme.colorScheme.surfaceContainerHighest,
+                MaterialTheme.colorScheme.primary,
+                fillFraction
+            )
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .height(6.dp)
+                    .height(8.dp)
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    shape = RoundedCornerShape(3.dp),
+                    shape = RoundedCornerShape(50),
                     color = color
                 ) {}
             }
@@ -214,21 +243,23 @@ private fun SummaryContent(
     permissionDenied: Boolean,
     onBegin: () -> Unit
 ) {
-    CenteredCard {
+    CenteredCard(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             stringResource(R.string.therapy_summary_title),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
         )
         Text(
             stringResource(R.string.therapy_summary_detail, totalSeries, minutes),
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center
         )
         if (deviceSerial != null) {
-            Text(
-                stringResource(R.string.therapy_summary_device, deviceSerial),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+            ColoredPill(
+                text = stringResource(R.string.therapy_summary_device, deviceSerial),
+                container = MaterialTheme.colorScheme.secondaryContainer,
+                content = MaterialTheme.colorScheme.onSecondaryContainer
             )
         }
         PermissionHint(permissionDenied)
@@ -243,11 +274,13 @@ private fun SummaryContent(
 @Composable
 private fun SensorsContent(onConfirm: () -> Unit) {
     var checked by remember { mutableStateOf(false) }
-    CenteredCard {
+    CenteredCard(horizontalAlignment = Alignment.CenterHorizontally) {
+        HaloIcon(icon = Icons.Default.Sensors)
         Text(
             stringResource(R.string.therapy_sensors_title),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(checked = checked, onCheckedChange = { checked = it })
@@ -273,17 +306,18 @@ private fun StartedContent(
     onContinue: () -> Unit,
     onDone: () -> Unit
 ) {
+    val extended = ExtendedTheme.colors
     CenteredCard(horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(
-            if (connected) Icons.Default.CheckCircle else Icons.Default.Warning,
-            contentDescription = null,
-            tint = if (connected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-            modifier = Modifier.size(56.dp)
+        HaloIcon(
+            icon = if (connected) Icons.Default.CheckCircle else Icons.Default.Warning,
+            containerColor = if (connected) extended.success.colorContainer else extended.warning.colorContainer,
+            contentColor = if (connected) extended.success.onColorContainer else extended.warning.onColorContainer
         )
         Text(
             stringResource(R.string.therapy_started_title),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
         )
         Text(
             stringResource(
@@ -291,7 +325,8 @@ private fun StartedContent(
                 else R.string.therapy_started_disconnected
             ),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
         )
         if (!connected) {
             PermissionHint(permissionDenied)
@@ -313,15 +348,22 @@ private fun StartedContent(
 @Composable
 private fun FailedContent(message: String, onRetry: () -> Unit) {
     CenteredCard(horizontalAlignment = Alignment.CenterHorizontally) {
+        HaloIcon(
+            icon = Icons.Default.ErrorOutline,
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer
+        )
         Text(
             stringResource(R.string.therapy_failed_title),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
         )
         Text(
             message,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
         )
         Button(onClick = onRetry, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp)) {
             Text(stringResource(R.string.therapy_retry))
@@ -330,13 +372,20 @@ private fun FailedContent(message: String, onRetry: () -> Unit) {
 }
 
 @Composable
-private fun InfoState(title: String, subtitle: String, onBack: () -> Unit) {
+private fun InfoState(icon: ImageVector, title: String, subtitle: String, onBack: () -> Unit) {
     CenteredCard(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        HaloIcon(icon = icon)
+        Text(
+            title,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
         Text(
             subtitle,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
         )
         OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp)) {
             Text(stringResource(R.string.therapy_prep_back))
@@ -347,7 +396,16 @@ private fun InfoState(title: String, subtitle: String, onBack: () -> Unit) {
 @Composable
 private fun Progress(label: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        HaloIcon(icon = Icons.Default.Sync)
         CircularProgressIndicator()
+        Text(label, style = MaterialTheme.typography.bodyLarge)
+    }
+}
+
+@Composable
+private fun ConnectingProgress(label: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        PulsingRings { HaloIcon(icon = Icons.Default.Bluetooth) }
         Text(label, style = MaterialTheme.typography.bodyLarge)
     }
 }

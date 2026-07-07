@@ -5,6 +5,7 @@
     <string name="plan_scheduled_title">Programados</string>
     <string name="plan_scheduled_starts">Comienza %1$s</string>
     <string name="plan_routine_count">%1$d rutinas</string>
+    <string name="plan_exercise_count">%1$d ejercicios</string>
     <string name="plan_empty_title">Sin plan activo</string>
     <string name="plan_empty_subtitle">Cuando tu terapeuta active un plan, aparecerá aquí.</string>
     <string name="plan_error_title">No pudimos cargar tu plan</string>

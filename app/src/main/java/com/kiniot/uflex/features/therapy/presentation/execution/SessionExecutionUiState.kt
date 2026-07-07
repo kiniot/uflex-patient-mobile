@@ -3,6 +3,7 @@ package com.kiniot.uflex.features.therapy.presentation.execution
 import com.kiniot.uflex.core.ui.UiText
 import com.kiniot.uflex.features.device.domain.model.BleConnectionState
 import com.kiniot.uflex.features.device.domain.model.MotionTelemetry
+import com.kiniot.uflex.features.plan.domain.model.Exercise
 import com.kiniot.uflex.features.therapy.domain.model.SerieProgress
 import com.kiniot.uflex.features.therapy.domain.model.SerieStatus
 import com.kiniot.uflex.features.therapy.domain.model.SessionProgress
@@ -20,7 +21,10 @@ data class SessionExecutionUiState(
     val painDialogVisible: Boolean = false,
     val terminateDialogVisible: Boolean = false,
     val isTerminating: Boolean = false,
-    val errorMessage: UiText? = null
+    val errorMessage: UiText? = null,
+    /** Catalog detail (name + video) of [nextPendingSerie]'s exercise, shown before it's started. */
+    val upcomingExercise: Exercise? = null,
+    val isUpcomingExerciseLoading: Boolean = false
 ) {
     enum class Phase { Loading, Active, Finished, Failed }
 

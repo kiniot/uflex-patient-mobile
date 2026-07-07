@@ -16,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -32,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kiniot.uflex.R
+import com.kiniot.uflex.core.designsystem.components.HaloIcon
+import com.kiniot.uflex.core.designsystem.components.Pill
 import com.kiniot.uflex.core.ui.asString
 import com.kiniot.uflex.features.plan.domain.model.Exercise
 import com.kiniot.uflex.features.plan.presentation.exercises.toUiText
@@ -83,8 +84,8 @@ private fun ExerciseDetailContent(exercise: Exercise) {
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Chip(exercise.bodyPart.toUiText().asString(context))
-            Chip(exercise.movementType.toUiText().asString(context))
+            Pill(exercise.bodyPart.toUiText().asString(context))
+            Pill(exercise.movementType.toUiText().asString(context))
         }
 
         if (!exercise.description.isNullOrBlank()) {
@@ -114,10 +115,12 @@ private fun VideoUnavailable() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)
         ) {
-            Icon(
-                Icons.Outlined.Videocam,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            HaloIcon(
+                icon = Icons.Outlined.Videocam,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                size = 56.dp,
+                iconSize = 26.dp
             )
             Text(
                 text = stringResource(R.string.exercise_video_unavailable),
@@ -125,21 +128,6 @@ private fun VideoUnavailable() {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-    }
-}
-
-@Composable
-private fun Chip(text: String) {
-    Surface(
-        shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
-        )
     }
 }
 

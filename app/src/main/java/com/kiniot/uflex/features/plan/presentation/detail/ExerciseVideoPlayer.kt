@@ -24,15 +24,16 @@ import com.kiniot.uflex.R
 @Composable
 fun ExerciseVideoPlayer(
     videoUrl: String,
+    playWhenReady: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    val exoPlayer = remember(videoUrl) {
+    val exoPlayer = remember(videoUrl, playWhenReady) {
         ExoPlayer.Builder(context).build().apply {
             setMediaItem(MediaItem.fromUri(videoUrl))
-            playWhenReady = true // autoplay
+            this.playWhenReady = playWhenReady
             prepare()
         }
     }

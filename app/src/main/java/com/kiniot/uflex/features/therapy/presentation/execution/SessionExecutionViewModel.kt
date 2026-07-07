@@ -19,6 +19,7 @@ import com.kiniot.uflex.features.device.domain.usecase.DisconnectDeviceUseCase
 import com.kiniot.uflex.features.device.domain.usecase.GetMyAssignedDeviceUseCase
 import com.kiniot.uflex.features.device.domain.usecase.ObserveDeviceConnectionStateUseCase
 import com.kiniot.uflex.features.device.domain.usecase.ObserveMotionTelemetryUseCase
+import com.kiniot.uflex.features.plan.domain.usecase.GetExerciseDetailUseCase
 import com.kiniot.uflex.features.therapy.domain.model.LiveRepEvent
 import com.kiniot.uflex.features.therapy.domain.model.SessionStatus
 import com.kiniot.uflex.features.therapy.domain.usecase.CancelSessionUseCase
@@ -62,6 +63,7 @@ private const val CANCEL_REASON = "Cancelled by patient during session"
 class SessionExecutionViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getProgressUseCase: GetProgressUseCase,
+    private val getExerciseDetailUseCase: GetExerciseDetailUseCase,
     private val startSerieUseCase: StartSerieUseCase,
     private val reportPainUseCase: ReportPainUseCase,
     private val finalizeSessionUseCase: FinalizeSessionUseCase,
@@ -82,6 +84,10 @@ class SessionExecutionViewModel @Inject constructor(
 
     private val dismissChannel = Channel<Unit>(Channel.BUFFERED)
     val dismiss = dismissChannel.receiveAsFlow()
+
+    // Tracks which exercise's video/name is currently loaded (or being loaded) for the
+    // upcoming-exercise preview, so a serie that hasn't changed doesn't re-fetch on every poll.
+    private var upcomingExerciseId: String? = null
 
     init {
         // Live BLE state for the gauge/connection chip (reuses the link from preparation).
@@ -123,12 +129,49 @@ class SessionExecutionViewModel @Inject constructor(
                 if (progress.status == SessionStatus.Completed || progress.status == SessionStatus.Cancelled) {
                     finishAndDismiss()
                 }
+                loadUpcomingExerciseIfNeeded()
             }
 
             is AppResult.Error -> {
                 // Only a *first* failure (no data yet) is fatal; transient poll errors keep the last state.
                 if (_uiState.value.progress == null) {
                     _uiState.update { it.copy(phase = Phase.Failed, errorMessage = result.error.toUserMessage()) }
+                }
+            }
+        }
+    }
+
+    /**
+     * Loads the name/video of [SessionExecutionUiState.nextPendingSerie]'s exercise so the patient
+     * can preview it before starting/calibrating. Re-fetches only when the pending exercise changes
+     * (a new serie became next, or none is pending anymore); a fetch failure just hides the preview
+     * rather than surfacing an error, since it's a nice-to-have, not load-bearing for the session.
+     */
+    private fun loadUpcomingExerciseIfNeeded() {
+        val exerciseId = _uiState.value.nextPendingSerie?.exerciseId
+        if (exerciseId == upcomingExerciseId) return
+        upcomingExerciseId = exerciseId
+        if (exerciseId == null) {
+            _uiState.update { it.copy(upcomingExercise = null, isUpcomingExerciseLoading = false) }
+            return
+        }
+        _uiState.update { it.copy(upcomingExercise = null, isUpcomingExerciseLoading = true) }
+        viewModelScope.launch {
+            when (val result = getExerciseDetailUseCase(exerciseId)) {
+                is AppResult.Success -> _uiState.update {
+                    if (upcomingExerciseId == exerciseId) {
+                        it.copy(upcomingExercise = result.data, isUpcomingExerciseLoading = false)
+                    } else {
+                        it
+                    }
+                }
+
+                is AppResult.Error -> _uiState.update {
+                    if (upcomingExerciseId == exerciseId) {
+                        it.copy(upcomingExercise = null, isUpcomingExerciseLoading = false)
+                    } else {
+                        it
+                    }
                 }
             }
         }

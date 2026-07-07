@@ -5,6 +5,7 @@
     <string name="plan_scheduled_title">Scheduled</string>
     <string name="plan_scheduled_starts">Starts %1$s</string>
     <string name="plan_routine_count">%1$d routines</string>
+    <string name="plan_exercise_count">%1$d exercises</string>
     <string name="plan_empty_title">No active plan</string>
     <string name="plan_empty_subtitle">When your therapist activates a plan, it will appear here.</string>
     <string name="plan_error_title">We couldn\'t load your plan</string>
