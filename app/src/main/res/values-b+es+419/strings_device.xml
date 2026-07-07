@@ -38,6 +38,13 @@
     <string name="device_connected_subtitle">Tu dispositivo está listo y sincronizado.</string>
     <string name="device_disconnect">Desconectar</string>
     <string name="device_liveness_receiving">Recibiendo datos</string>
+    <string name="device_kit_status_ready">Sensor listo</string>
+    <string name="device_kit_status_syncing">Sincronizando con el móvil</string>
+    <string name="device_kit_status_calibrating">Calibrando</string>
+    <string name="device_kit_status_waiting_context">Esperando sesión</string>
+    <string name="device_kit_status_safety_alert">Alerta de seguridad</string>
+    <string name="device_kit_status_error">Error del sensor</string>
+    <string name="device_kit_status_unknown">Estado del sensor no disponible</string>
 
     <!-- Permisos / Bluetooth -->
     <string name="device_perm_denied">Se necesita permiso de Bluetooth para vincular tu sensor.</string>

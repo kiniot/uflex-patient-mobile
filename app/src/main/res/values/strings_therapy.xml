@@ -53,8 +53,10 @@
     <string name="therapy_exec_reps">%1$d / %2$d reps</string>
     <string name="therapy_exec_start_serie">Start exercise</string>
     <string name="therapy_exec_upcoming_label">Next exercise</string>
+    <string name="therapy_exec_current_exercise_label">Current exercise</string>
     <string name="therapy_exec_upcoming_title">Review the movement</string>
     <string name="therapy_exec_upcoming_body">Watch the movement, then get into the reference position before calibrating.</string>
+    <string name="therapy_exec_current_exercise_body">Follow the prescribed joint and movement while keeping the kit connected.</string>
     <string name="therapy_exec_video_unavailable">No video available for this exercise</string>
     <string name="therapy_exec_calibrate_title">Get in position</string>
     <string name="therapy_exec_calibrate_body">Fully extend your arm and hold still — this sets your starting point.</string>
@@ -66,9 +68,9 @@
     <string name="therapy_exec_angle">Live angle</string>
     <string name="therapy_exec_degrees">%1$d°</string>
     <string name="therapy_exec_actuators">Actuators</string>
+    <string name="therapy_exec_kit_feedback">Kit feedback</string>
     <string name="therapy_exec_led">LED</string>
     <string name="therapy_exec_buzzer">Buzzer</string>
-    <string name="therapy_exec_vibration">Vibration</string>
     <string name="therapy_exec_disconnected_banner">Kit disconnected — live readings paused.</string>
     <string name="therapy_exec_report_pain">Report pain</string>
     <string name="therapy_exec_pain_title">Pain level?</string>

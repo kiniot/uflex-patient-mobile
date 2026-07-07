@@ -53,8 +53,10 @@
     <string name="therapy_exec_reps">%1$d / %2$d reps</string>
     <string name="therapy_exec_start_serie">Iniciar ejercicio</string>
     <string name="therapy_exec_upcoming_label">Siguiente ejercicio</string>
+    <string name="therapy_exec_current_exercise_label">Ejercicio actual</string>
     <string name="therapy_exec_upcoming_title">Revisa el movimiento</string>
     <string name="therapy_exec_upcoming_body">Mira el movimiento y luego ponte en la posición de referencia antes de calibrar.</string>
+    <string name="therapy_exec_current_exercise_body">Sigue la articulación y el movimiento indicados mientras mantienes el kit conectado.</string>
     <string name="therapy_exec_video_unavailable">No hay video disponible para este ejercicio</string>
     <string name="therapy_exec_calibrate_title">Ponte en posición</string>
     <string name="therapy_exec_calibrate_body">Extiende el brazo por completo y mantén la posición — así fijamos tu punto de inicio.</string>
@@ -66,9 +68,9 @@
     <string name="therapy_exec_angle">Ángulo en vivo</string>
     <string name="therapy_exec_degrees">%1$d°</string>
     <string name="therapy_exec_actuators">Actuadores</string>
+    <string name="therapy_exec_kit_feedback">Estado del kit</string>
     <string name="therapy_exec_led">LED</string>
     <string name="therapy_exec_buzzer">Zumbador</string>
-    <string name="therapy_exec_vibration">Vibración</string>
     <string name="therapy_exec_disconnected_banner">Kit desconectado — lecturas en vivo pausadas.</string>
     <string name="therapy_exec_report_pain">Reportar dolor</string>
     <string name="therapy_exec_pain_title">¿Nivel de dolor?</string>

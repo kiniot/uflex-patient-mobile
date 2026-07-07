@@ -86,8 +86,8 @@ class SessionExecutionViewModel @Inject constructor(
     val dismiss = dismissChannel.receiveAsFlow()
 
     // Tracks which exercise's video/name is currently loaded (or being loaded) for the
-    // upcoming-exercise preview, so a serie that hasn't changed doesn't re-fetch on every poll.
-    private var upcomingExerciseId: String? = null
+    // visible serie, so polling does not re-fetch while the active exercise is unchanged.
+    private var focusedExerciseId: String? = null
 
     init {
         // Live BLE state for the gauge/connection chip (reuses the link from preparation).
@@ -129,7 +129,7 @@ class SessionExecutionViewModel @Inject constructor(
                 if (progress.status == SessionStatus.Completed || progress.status == SessionStatus.Cancelled) {
                     finishAndDismiss()
                 }
-                loadUpcomingExerciseIfNeeded()
+                loadFocusedExerciseIfNeeded()
             }
 
             is AppResult.Error -> {
@@ -142,33 +142,31 @@ class SessionExecutionViewModel @Inject constructor(
     }
 
     /**
-     * Loads the name/video of [SessionExecutionUiState.nextPendingSerie]'s exercise so the patient
-     * can preview it before starting/calibrating. Re-fetches only when the pending exercise changes
-     * (a new serie became next, or none is pending anymore); a fetch failure just hides the preview
-     * rather than surfacing an error, since it's a nice-to-have, not load-bearing for the session.
+     * Loads the name/video and clinical labels of the running serie's exercise, or the next pending
+     * serie when idle. A fetch failure hides the panel rather than blocking the session.
      */
-    private fun loadUpcomingExerciseIfNeeded() {
-        val exerciseId = _uiState.value.nextPendingSerie?.exerciseId
-        if (exerciseId == upcomingExerciseId) return
-        upcomingExerciseId = exerciseId
+    private fun loadFocusedExerciseIfNeeded() {
+        val exerciseId = _uiState.value.focusedSerie?.exerciseId
+        if (exerciseId == focusedExerciseId) return
+        focusedExerciseId = exerciseId
         if (exerciseId == null) {
-            _uiState.update { it.copy(upcomingExercise = null, isUpcomingExerciseLoading = false) }
+            _uiState.update { it.copy(focusedExercise = null, isFocusedExerciseLoading = false) }
             return
         }
-        _uiState.update { it.copy(upcomingExercise = null, isUpcomingExerciseLoading = true) }
+        _uiState.update { it.copy(focusedExercise = null, isFocusedExerciseLoading = true) }
         viewModelScope.launch {
             when (val result = getExerciseDetailUseCase(exerciseId)) {
                 is AppResult.Success -> _uiState.update {
-                    if (upcomingExerciseId == exerciseId) {
-                        it.copy(upcomingExercise = result.data, isUpcomingExerciseLoading = false)
+                    if (focusedExerciseId == exerciseId) {
+                        it.copy(focusedExercise = result.data, isFocusedExerciseLoading = false)
                     } else {
                         it
                     }
                 }
 
                 is AppResult.Error -> _uiState.update {
-                    if (upcomingExerciseId == exerciseId) {
-                        it.copy(upcomingExercise = null, isUpcomingExerciseLoading = false)
+                    if (focusedExerciseId == exerciseId) {
+                        it.copy(focusedExercise = null, isFocusedExerciseLoading = false)
                     } else {
                         it
                     }

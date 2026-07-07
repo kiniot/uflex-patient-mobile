@@ -2,6 +2,7 @@ package com.kiniot.uflex.features.device.presentation
 
 import com.kiniot.uflex.features.device.domain.model.BleConnectionState
 import com.kiniot.uflex.features.device.domain.model.Device
+import com.kiniot.uflex.features.device.domain.model.MotionTelemetry
 
 /**
  * UI state for the Devices tab: resolve whether the patient has an assigned kit, then drive the
@@ -12,7 +13,8 @@ data class DeviceConnectionUiState(
     val deviceCheck: DeviceCheck = DeviceCheck.Loading,
     val connectionState: BleConnectionState = BleConnectionState.Idle,
     val inPairing: Boolean = false,
-    val framesReceived: Int = 0
+    val framesReceived: Int = 0,
+    val latestTelemetry: MotionTelemetry? = null
 ) {
     /** A subtle "it's working" signal on the connected view; BLE frames carry no battery/identity. */
     val receivingData: Boolean get() = framesReceived > 0

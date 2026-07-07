@@ -69,6 +69,7 @@ import com.kiniot.uflex.core.designsystem.components.Pill
 import com.kiniot.uflex.core.designsystem.components.RadialGauge
 import com.kiniot.uflex.core.designsystem.theme.ExtendedTheme
 import com.kiniot.uflex.core.ui.asString
+import com.kiniot.uflex.features.device.presentation.KitStatusChip
 import com.kiniot.uflex.features.plan.domain.model.Exercise
 import com.kiniot.uflex.features.plan.presentation.detail.ExerciseVideoPlayer
 import com.kiniot.uflex.features.plan.presentation.exercises.toUiText
@@ -181,10 +182,11 @@ private fun ActiveContent(
 
         val running = uiState.runningSerie
         val next = uiState.nextPendingSerie
-        if (running == null && next != null) {
-            UpcomingExerciseCard(
-                exercise = uiState.upcomingExercise,
-                isLoading = uiState.isUpcomingExerciseLoading
+        if (uiState.focusedSerie != null) {
+            FocusedExerciseCard(
+                exercise = uiState.focusedExercise,
+                isLoading = uiState.isFocusedExerciseLoading,
+                isRunning = running != null
             )
         }
         when {
@@ -269,14 +271,13 @@ private fun GaugeCard(uiState: SessionExecutionUiState) {
             )
         }
         Text(
-            stringResource(R.string.therapy_exec_actuators),
+            stringResource(R.string.therapy_exec_kit_feedback),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ActuatorChip(label = stringResource(R.string.therapy_exec_led), active = telemetry?.ledColor?.name?.let { it != "Off" && it != "Unknown" } == true)
+            KitStatusChip(telemetry?.ledColor)
             ActuatorChip(label = stringResource(R.string.therapy_exec_buzzer), active = telemetry?.buzzerActive == true)
-            ActuatorChip(label = stringResource(R.string.therapy_exec_vibration), active = telemetry?.vibrationActive == true)
         }
     }
 }
@@ -398,7 +399,7 @@ private fun DisconnectedBanner(onReconnect: () -> Unit) {
 }
 
 @Composable
-private fun UpcomingExerciseCard(exercise: Exercise?, isLoading: Boolean) {
+private fun FocusedExerciseCard(exercise: Exercise?, isLoading: Boolean, isRunning: Boolean) {
     Card {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -414,7 +415,13 @@ private fun UpcomingExerciseCard(exercise: Exercise?, isLoading: Boolean) {
             )
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
-                    text = stringResource(R.string.therapy_exec_upcoming_label),
+                    text = stringResource(
+                        if (isRunning) {
+                            R.string.therapy_exec_current_exercise_label
+                        } else {
+                            R.string.therapy_exec_upcoming_label
+                        }
+                    ),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold
@@ -449,7 +456,13 @@ private fun UpcomingExerciseCard(exercise: Exercise?, isLoading: Boolean) {
         }
 
         Text(
-            text = stringResource(R.string.therapy_exec_upcoming_body),
+            text = stringResource(
+                if (isRunning) {
+                    R.string.therapy_exec_current_exercise_body
+                } else {
+                    R.string.therapy_exec_upcoming_body
+                }
+            ),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

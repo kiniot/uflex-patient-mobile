@@ -49,12 +49,14 @@ class DeviceConnectionViewModel @Inject constructor(
             }
             .launchIn(viewModelScope)
 
-        // Count frames only as a liveness signal while connected (raw telemetry is not shown).
+        // Keep the latest frame for liveness and the kit's own LED/status signal.
         observeDeviceConnectionStateUseCase()
             .flatMapLatest { state ->
                 if (state is BleConnectionState.Connected) observeMotionTelemetryUseCase() else emptyFlow()
             }
-            .onEach { _uiState.update { it.copy(framesReceived = it.framesReceived + 1) } }
+            .onEach { frame ->
+                _uiState.update { it.copy(framesReceived = it.framesReceived + 1, latestTelemetry = frame) }
+            }
             .launchIn(viewModelScope)
 
         loadAssignedDevice()
@@ -89,7 +91,7 @@ class DeviceConnectionViewModel @Inject constructor(
 
     /** Kick off the atomic scan → connect → confirm-identity flow (after permissions + BT are ready). */
     fun onConnect() {
-        _uiState.update { it.copy(framesReceived = 0) }
+        _uiState.update { it.copy(framesReceived = 0, latestTelemetry = null) }
         viewModelScope.launch { connectToAssignedDeviceUseCase() }
     }
 

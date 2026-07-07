@@ -44,6 +44,7 @@ import com.kiniot.uflex.core.ui.UiText
 import com.kiniot.uflex.core.ui.asString
 import com.kiniot.uflex.features.device.domain.model.BleConnectionState
 import com.kiniot.uflex.features.device.domain.model.DeviceCalibrationStatus
+import com.kiniot.uflex.features.device.domain.model.LedColor
 
 /** An icon centered inside a soft circular container. Used for the wizard/hero visuals. */
 @Composable
@@ -141,6 +142,50 @@ fun ConnectionChip(state: BleConnectionState) {
 }
 
 @Composable
+fun KitStatusChip(ledColor: LedColor?) {
+    val extended = ExtendedTheme.colors
+    val scheme = MaterialTheme.colorScheme
+    val (container, content, dot, labelRes) = when (ledColor) {
+        LedColor.Green ->
+            Quad(extended.success.colorContainer, extended.success.onColorContainer, extended.success.color,
+                R.string.device_kit_status_ready)
+        LedColor.Blue ->
+            Quad(extended.info.colorContainer, extended.info.onColorContainer, extended.info.color,
+                R.string.device_kit_status_syncing)
+        LedColor.Cyan ->
+            Quad(extended.info.colorContainer, extended.info.onColorContainer, extended.info.color,
+                R.string.device_kit_status_calibrating)
+        LedColor.Yellow ->
+            Quad(extended.warning.colorContainer, extended.warning.onColorContainer, extended.warning.color,
+                R.string.device_kit_status_waiting_context)
+        LedColor.Red ->
+            Quad(scheme.errorContainer, scheme.onErrorContainer, scheme.error,
+                R.string.device_kit_status_safety_alert)
+        LedColor.Magenta ->
+            Quad(scheme.errorContainer, scheme.onErrorContainer, scheme.error,
+                R.string.device_kit_status_error)
+        LedColor.Off, LedColor.Unknown, null ->
+            Quad(scheme.surfaceVariant, scheme.onSurfaceVariant, scheme.outline,
+                R.string.device_kit_status_unknown)
+    }
+    Surface(shape = RoundedCornerShape(50), color = container) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Box(modifier = Modifier.size(8.dp).background(dot, CircleShape))
+            Text(
+                text = stringResource(labelRes),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = content
+            )
+        }
+    }
+}
+
+@Composable
 private fun ColoredPill(text: String, container: Color, content: Color) {
     Surface(shape = RoundedCornerShape(50), color = container) {
         Text(
@@ -152,6 +197,8 @@ private fun ColoredPill(text: String, container: Color, content: Color) {
         )
     }
 }
+
+private data class Quad<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 
 /** Battery indicator. The value is the backend's last-known reading, not live BLE. */
 @Composable

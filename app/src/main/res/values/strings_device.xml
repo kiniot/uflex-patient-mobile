@@ -38,6 +38,13 @@
     <string name="device_connected_subtitle">Your device is ready and synced.</string>
     <string name="device_disconnect">Disconnect</string>
     <string name="device_liveness_receiving">Receiving data</string>
+    <string name="device_kit_status_ready">Sensor ready</string>
+    <string name="device_kit_status_syncing">Syncing with phone</string>
+    <string name="device_kit_status_calibrating">Calibrating</string>
+    <string name="device_kit_status_waiting_context">Waiting for session</string>
+    <string name="device_kit_status_safety_alert">Safety alert</string>
+    <string name="device_kit_status_error">Sensor error</string>
+    <string name="device_kit_status_unknown">Sensor status unavailable</string>
 
     <!-- Permissions / Bluetooth -->
     <string name="device_perm_denied">Bluetooth permission is needed to link your sensor.</string>

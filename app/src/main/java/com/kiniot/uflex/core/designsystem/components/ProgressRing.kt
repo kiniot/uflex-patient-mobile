@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 /**
  * Circular progress ring with the percentage centered inside. A full-circle track sits behind a
@@ -66,8 +67,9 @@ fun ProgressRing(
         }
         Text(
             text = "$percent%",
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
+            fontSize = (diameter.value * 0.24f).coerceIn(12f, 22f).sp,
             color = textColor
         )
     }

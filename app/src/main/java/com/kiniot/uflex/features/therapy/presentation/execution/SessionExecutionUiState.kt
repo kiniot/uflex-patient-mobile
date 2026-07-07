@@ -22,9 +22,9 @@ data class SessionExecutionUiState(
     val terminateDialogVisible: Boolean = false,
     val isTerminating: Boolean = false,
     val errorMessage: UiText? = null,
-    /** Catalog detail (name + video) of [nextPendingSerie]'s exercise, shown before it's started. */
-    val upcomingExercise: Exercise? = null,
-    val isUpcomingExerciseLoading: Boolean = false
+    /** Catalog detail of the running serie's exercise, or the next pending serie when idle. */
+    val focusedExercise: Exercise? = null,
+    val isFocusedExerciseLoading: Boolean = false
 ) {
     enum class Phase { Loading, Active, Finished, Failed }
 
@@ -35,6 +35,10 @@ data class SessionExecutionUiState(
     /** The next serie waiting to be started, if any. */
     val nextPendingSerie: SerieProgress?
         get() = progress?.series?.firstOrNull { it.status == SerieStatus.Pending }
+
+    /** The serie whose exercise metadata should be visible in the execution UI. */
+    val focusedSerie: SerieProgress?
+        get() = runningSerie ?: nextPendingSerie
 
     /** True once every serie of the routine is completed (enables finalize). */
     val allSeriesCompleted: Boolean

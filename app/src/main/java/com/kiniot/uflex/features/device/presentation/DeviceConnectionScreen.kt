@@ -57,6 +57,7 @@ import com.kiniot.uflex.core.designsystem.theme.ExtendedTheme
 import com.kiniot.uflex.core.ui.asString
 import com.kiniot.uflex.features.device.domain.model.BleConnectionState
 import com.kiniot.uflex.features.device.domain.model.Device
+import com.kiniot.uflex.features.device.domain.model.MotionTelemetry
 
 @Composable
 fun DeviceConnectionScreen(
@@ -128,6 +129,7 @@ fun DeviceConnectionScreen(
                         ConnectedView(
                             device = check.device,
                             receivingData = uiState.receivingData,
+                            latestTelemetry = uiState.latestTelemetry,
                             onDisconnect = viewModel::onDisconnect
                         )
 
@@ -377,6 +379,7 @@ private fun PairingError(
 private fun ConnectedView(
     device: Device,
     receivingData: Boolean,
+    latestTelemetry: MotionTelemetry?,
     onDisconnect: () -> Unit
 ) {
     val success = ExtendedTheme.colors.success
@@ -411,6 +414,8 @@ private fun ConnectedView(
         if (receivingData) {
             Spacer(Modifier.height(10.dp))
             LivenessDot()
+            Spacer(Modifier.height(10.dp))
+            KitStatusChip(latestTelemetry?.ledColor)
         }
         Spacer(Modifier.height(28.dp))
         OutlinedButton(onClick = onDisconnect, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
