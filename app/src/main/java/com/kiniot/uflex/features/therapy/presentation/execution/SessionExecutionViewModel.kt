@@ -14,6 +14,8 @@ import com.kiniot.uflex.core.result.AppResult
 import com.kiniot.uflex.core.result.toUserMessage
 import com.kiniot.uflex.core.ui.UiText
 import com.kiniot.uflex.features.device.domain.model.BleConnectionState
+import com.kiniot.uflex.features.device.domain.model.LedColor
+import com.kiniot.uflex.features.device.domain.model.MotionTelemetry
 import com.kiniot.uflex.features.device.domain.usecase.ConnectToAssignedDeviceUseCase
 import com.kiniot.uflex.features.device.domain.usecase.DisconnectDeviceUseCase
 import com.kiniot.uflex.features.device.domain.usecase.GetMyAssignedDeviceUseCase
@@ -92,14 +94,29 @@ class SessionExecutionViewModel @Inject constructor(
     init {
         // Live BLE state for the gauge/connection chip (reuses the link from preparation).
         observeDeviceConnectionStateUseCase()
-            .onEach { state -> _uiState.update { it.copy(connectionState = state) } }
+            .onEach { state ->
+                _uiState.update {
+                    it.copy(
+                        connectionState = state,
+                        latestTelemetry = if (state is BleConnectionState.Connected) {
+                            it.latestTelemetry
+                        } else {
+                            null
+                        }
+                    )
+                }
+            }
             .launchIn(viewModelScope)
 
         observeDeviceConnectionStateUseCase()
             .flatMapLatest { state ->
                 if (state is BleConnectionState.Connected) observeMotionTelemetryUseCase() else emptyFlow()
             }
-            .onEach { frame -> _uiState.update { it.copy(latestTelemetry = frame) } }
+            .onEach { frame ->
+                _uiState.update {
+                    it.copy(latestTelemetry = frame.withStableLedColor(it.latestTelemetry))
+                }
+            }
             .launchIn(viewModelScope)
 
         startProgressPolling()
@@ -322,5 +339,14 @@ class SessionExecutionViewModel @Inject constructor(
         viewModelScope.launch {
             snackbarManager.showMessage(AppSnackbarMessage(UiText.Resource(resId), SnackbarType.Success))
         }
+    }
+}
+
+private fun MotionTelemetry.withStableLedColor(previous: MotionTelemetry?): MotionTelemetry {
+    val previousColor = previous?.ledColor
+    return if (ledColor == LedColor.Off && previousColor != null && previousColor != LedColor.Off) {
+        copy(ledColor = previousColor)
+    } else {
+        this
     }
 }

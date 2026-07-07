@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.kiniot.uflex.core.result.AppError
 import com.kiniot.uflex.core.result.AppResult
 import com.kiniot.uflex.features.device.domain.model.BleConnectionState
+import com.kiniot.uflex.features.device.domain.model.LedColor
+import com.kiniot.uflex.features.device.domain.model.MotionTelemetry
 import com.kiniot.uflex.features.device.domain.usecase.ConnectToAssignedDeviceUseCase
 import com.kiniot.uflex.features.device.domain.usecase.DisconnectDeviceUseCase
 import com.kiniot.uflex.features.device.domain.usecase.GetMyAssignedDeviceUseCase
@@ -42,6 +44,11 @@ class DeviceConnectionViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         connectionState = state,
+                        latestTelemetry = if (state is BleConnectionState.Connected) {
+                            it.latestTelemetry
+                        } else {
+                            null
+                        },
                         // Once the link is up, the wizard is done — the Connected view takes over.
                         inPairing = if (state is BleConnectionState.Connected) false else it.inPairing
                     )
@@ -55,7 +62,12 @@ class DeviceConnectionViewModel @Inject constructor(
                 if (state is BleConnectionState.Connected) observeMotionTelemetryUseCase() else emptyFlow()
             }
             .onEach { frame ->
-                _uiState.update { it.copy(framesReceived = it.framesReceived + 1, latestTelemetry = frame) }
+                _uiState.update {
+                    it.copy(
+                        framesReceived = it.framesReceived + 1,
+                        latestTelemetry = frame.withStableLedColor(it.latestTelemetry)
+                    )
+                }
             }
             .launchIn(viewModelScope)
 
@@ -96,7 +108,16 @@ class DeviceConnectionViewModel @Inject constructor(
     }
 
     fun onDisconnect() {
-        _uiState.update { it.copy(inPairing = false) }
+        _uiState.update { it.copy(inPairing = false, latestTelemetry = null) }
         viewModelScope.launch { disconnectDeviceUseCase() }
+    }
+}
+
+private fun MotionTelemetry.withStableLedColor(previous: MotionTelemetry?): MotionTelemetry {
+    val previousColor = previous?.ledColor
+    return if (ledColor == LedColor.Off && previousColor != null && previousColor != LedColor.Off) {
+        copy(ledColor = previousColor)
+    } else {
+        this
     }
 }
