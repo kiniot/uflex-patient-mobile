@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -34,6 +35,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -347,29 +350,118 @@ private fun ScheduleUnknownCard() {
 @Composable
 private fun HomeLoading() {
     val transition = rememberInfiniteTransition(label = "shimmer")
-    val alpha by transition.animateFloat(
-        initialValue = 0.35f,
-        targetValue = 0.85f,
-        animationSpec = infiniteRepeatable(tween(durationMillis = 850), RepeatMode.Reverse),
-        label = "shimmerAlpha"
+    val shimmerOffset by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(tween(durationMillis = 1200), RepeatMode.Restart),
+        label = "homeShimmerOffset"
     )
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        SkeletonBlock(Modifier.fillMaxWidth(0.6f).height(28.dp), alpha)
-        SkeletonBlock(Modifier.fillMaxWidth().height(180.dp), alpha, RoundedCornerShape(28.dp))
-        repeat(3) { SkeletonBlock(Modifier.fillMaxWidth().height(76.dp), alpha, RoundedCornerShape(20.dp)) }
+        item(key = "loading-greeting") {
+            Column(
+                modifier = Modifier.padding(top = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                SkeletonBlock(Modifier.fillMaxWidth(0.36f).height(14.dp), shimmerOffset)
+                SkeletonBlock(Modifier.fillMaxWidth(0.68f).height(32.dp), shimmerOffset)
+            }
+        }
+
+        item(key = "loading-hero") { PlanProgressHeroSkeleton(shimmerOffset) }
+
+        item(key = "loading-today-title") {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                SkeletonBlock(Modifier.width(128.dp).height(26.dp), shimmerOffset)
+                SkeletonBlock(Modifier.width(72.dp).height(18.dp), shimmerOffset)
+            }
+        }
+
+        items(3, key = { "loading-exercise-$it" }) { TodayExerciseRowSkeleton(shimmerOffset) }
+
+        item(key = "loading-cta") {
+            SkeletonBlock(Modifier.fillMaxWidth().height(48.dp), shimmerOffset, RoundedCornerShape(16.dp))
+        }
     }
 }
 
 @Composable
 private fun SkeletonBlock(
     modifier: Modifier,
-    alpha: Float,
+    shimmerOffset: Float,
     shape: Shape = RoundedCornerShape(12.dp)
 ) {
-    Box(modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = alpha), shape))
+    val base = MaterialTheme.colorScheme.surfaceContainerLow
+    val highlight = MaterialTheme.colorScheme.surfaceContainerHighest
+    val brush = Brush.linearGradient(
+        colors = listOf(base, highlight, base),
+        start = Offset(shimmerOffset - 350f, 0f),
+        end = Offset(shimmerOffset, 350f)
+    )
+    Box(modifier = modifier.background(brush, shape))
+}
+
+@Composable
+private fun PlanProgressHeroSkeleton(shimmerOffset: Float) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.42f)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            SkeletonBlock(Modifier.width(104.dp).height(14.dp), shimmerOffset)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                SkeletonBlock(Modifier.size(108.dp), shimmerOffset, CircleShape)
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    SkeletonBlock(Modifier.fillMaxWidth(0.9f).height(24.dp), shimmerOffset)
+                    SkeletonBlock(Modifier.width(88.dp).height(26.dp), shimmerOffset, RoundedCornerShape(50))
+                    SkeletonBlock(Modifier.fillMaxWidth().height(16.dp), shimmerOffset)
+                    SkeletonBlock(Modifier.fillMaxWidth(0.72f).height(14.dp), shimmerOffset)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TodayExerciseRowSkeleton(shimmerOffset: Float) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            SkeletonBlock(Modifier.size(44.dp), shimmerOffset, CircleShape)
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                SkeletonBlock(Modifier.fillMaxWidth(0.78f).height(20.dp), shimmerOffset)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SkeletonBlock(Modifier.width(72.dp).height(20.dp), shimmerOffset, RoundedCornerShape(8.dp))
+                    SkeletonBlock(Modifier.width(88.dp).height(20.dp), shimmerOffset, RoundedCornerShape(8.dp))
+                }
+                SkeletonBlock(Modifier.fillMaxWidth(0.48f).height(14.dp), shimmerOffset)
+            }
+            SkeletonBlock(Modifier.size(24.dp), shimmerOffset, CircleShape)
+        }
+    }
 }
 
 @Composable
