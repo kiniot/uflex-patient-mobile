@@ -5,6 +5,7 @@ import com.kiniot.uflex.features.therapy.data.remote.dto.EdgeConnectionResponseD
 import com.kiniot.uflex.features.therapy.data.remote.dto.LiveRepEventDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.SerieProgressResponseDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.SessionProgressResponseDto
+import com.kiniot.uflex.features.therapy.data.remote.dto.SessionSummaryResponseDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.TherapySessionResponseDto
 import com.kiniot.uflex.features.therapy.domain.model.DailySchedule
 import com.kiniot.uflex.features.therapy.domain.model.EdgeConnection
@@ -13,6 +14,7 @@ import com.kiniot.uflex.features.therapy.domain.model.ScheduleResolution
 import com.kiniot.uflex.features.therapy.domain.model.SerieProgress
 import com.kiniot.uflex.features.therapy.domain.model.SerieStatus
 import com.kiniot.uflex.features.therapy.domain.model.SessionProgress
+import com.kiniot.uflex.features.therapy.domain.model.SessionSummary
 import com.kiniot.uflex.features.therapy.domain.model.SessionStatus
 import com.kiniot.uflex.features.therapy.domain.model.TherapySession
 
@@ -46,6 +48,23 @@ fun SerieProgressResponseDto.toDomain(): SerieProgress = SerieProgress(
     currentRepetitions = currentRepetitions ?: 0,
     targetRepetitions = targetRepetitions ?: 0,
     status = status.toSerieStatus()
+)
+
+fun SessionSummaryResponseDto.toDomain(): SessionSummary = SessionSummary(
+    sessionId = sessionId.orEmpty(),
+    patientId = patientId,
+    totalSeries = totalSeries ?: 0,
+    completedSeries = completedSeries ?: 0,
+    totalRepetitions = totalRepetitions ?: 0,
+    goodRepetitions = goodRepetitions ?: 0,
+    incompleteRepetitions = incompleteRepetitions ?: 0,
+    unsafeRepetitions = unsafeRepetitions ?: 0,
+    averageAchievedRom = averageAchievedRom,
+    painLevel = painLevel,
+    requiresClinicalReview = requiresClinicalReview ?: false,
+    compensatoryMovementsDetected = compensatoryMovementsDetected ?: 0,
+    startedAt = startedAt,
+    finalizedAt = finalizedAt
 )
 
 fun LiveRepEventDto.toDomain(): LiveRepEvent = LiveRepEvent(

@@ -21,12 +21,16 @@ import com.kiniot.uflex.features.device.domain.usecase.DisconnectDeviceUseCase
 import com.kiniot.uflex.features.device.domain.usecase.GetMyAssignedDeviceUseCase
 import com.kiniot.uflex.features.device.domain.usecase.ObserveDeviceConnectionStateUseCase
 import com.kiniot.uflex.features.device.domain.usecase.ObserveMotionTelemetryUseCase
+import com.kiniot.uflex.features.history.domain.model.HistorySession
+import com.kiniot.uflex.features.history.domain.usecase.SaveCompletedSessionHistoryUseCase
 import com.kiniot.uflex.features.plan.domain.usecase.GetExerciseDetailUseCase
 import com.kiniot.uflex.features.therapy.domain.model.LiveRepEvent
+import com.kiniot.uflex.features.therapy.domain.model.SessionSummary
 import com.kiniot.uflex.features.therapy.domain.model.SessionStatus
 import com.kiniot.uflex.features.therapy.domain.usecase.CancelSessionUseCase
 import com.kiniot.uflex.features.therapy.domain.usecase.FinalizeSessionUseCase
 import com.kiniot.uflex.features.therapy.domain.usecase.GetProgressUseCase
+import com.kiniot.uflex.features.therapy.domain.usecase.GetSessionSummaryUseCase
 import com.kiniot.uflex.features.therapy.domain.usecase.ObserveLiveProgressUseCase
 import com.kiniot.uflex.features.therapy.domain.usecase.ReportPainUseCase
 import com.kiniot.uflex.features.therapy.domain.usecase.StartSerieUseCase
@@ -50,6 +54,7 @@ import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.time.Instant
 
 private const val POLL_INTERVAL_MS = 2_500L
 
@@ -69,6 +74,8 @@ class SessionExecutionViewModel @Inject constructor(
     private val startSerieUseCase: StartSerieUseCase,
     private val reportPainUseCase: ReportPainUseCase,
     private val finalizeSessionUseCase: FinalizeSessionUseCase,
+    private val getSessionSummaryUseCase: GetSessionSummaryUseCase,
+    private val saveCompletedSessionHistoryUseCase: SaveCompletedSessionHistoryUseCase,
     private val cancelSessionUseCase: CancelSessionUseCase,
     private val connectToAssignedDeviceUseCase: ConnectToAssignedDeviceUseCase,
     private val disconnectDeviceUseCase: DisconnectDeviceUseCase,
@@ -144,7 +151,7 @@ class SessionExecutionViewModel @Inject constructor(
                 }
                 // The session may have been finalized/cancelled elsewhere.
                 if (progress.status == SessionStatus.Completed || progress.status == SessionStatus.Cancelled) {
-                    finishAndDismiss()
+                    finishAndDismiss(saveCompletedHistory = progress.status == SessionStatus.Completed)
                 }
                 loadFocusedExerciseIfNeeded()
             }
@@ -275,7 +282,7 @@ class SessionExecutionViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isFinalizing = true) }
             when (val result = finalizeSessionUseCase(sessionId)) {
-                is AppResult.Success -> finishAndDismiss()
+                is AppResult.Success -> finishAndDismiss(saveCompletedHistory = result.data.status == SessionStatus.Completed)
                 is AppResult.Error -> {
                     notifyError(result.error)
                     _uiState.update { it.copy(isFinalizing = false) }
@@ -325,8 +332,25 @@ class SessionExecutionViewModel @Inject constructor(
     }
 
     private suspend fun finishAndDismiss() {
+        finishAndDismiss(saveCompletedHistory = false)
+    }
+
+    private suspend fun finishAndDismiss(saveCompletedHistory: Boolean) {
+        if (saveCompletedHistory) {
+            saveCompletedHistorySnapshot()
+        }
         _uiState.update { it.copy(phase = Phase.Finished, isFinalizing = false, isTerminating = false) }
         dismissChannel.send(Unit)
+    }
+
+    private suspend fun saveCompletedHistorySnapshot() {
+        val summary = when (val result = getSessionSummaryUseCase(sessionId)) {
+            is AppResult.Success -> result.data
+            is AppResult.Error -> return
+        }
+        runCatching {
+            saveCompletedSessionHistoryUseCase(summary.toHistorySession())
+        }
     }
 
     private fun notifyError(error: AppError) {
@@ -341,6 +365,24 @@ class SessionExecutionViewModel @Inject constructor(
         }
     }
 }
+
+private fun SessionSummary.toHistorySession(): HistorySession = HistorySession(
+    sessionId = sessionId,
+    patientId = patientId,
+    totalSeries = totalSeries,
+    completedSeries = completedSeries,
+    totalRepetitions = totalRepetitions,
+    goodRepetitions = goodRepetitions,
+    incompleteRepetitions = incompleteRepetitions,
+    unsafeRepetitions = unsafeRepetitions,
+    averageAchievedRom = averageAchievedRom,
+    painLevel = painLevel,
+    requiresClinicalReview = requiresClinicalReview,
+    compensatoryMovementsDetected = compensatoryMovementsDetected,
+    startedAt = startedAt,
+    finalizedAt = finalizedAt,
+    savedAt = Instant.now().toString()
+)
 
 private fun MotionTelemetry.withStableLedColor(previous: MotionTelemetry?): MotionTelemetry {
     val previousColor = previous?.ledColor

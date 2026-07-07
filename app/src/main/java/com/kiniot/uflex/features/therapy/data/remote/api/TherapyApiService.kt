@@ -7,6 +7,7 @@ import com.kiniot.uflex.features.therapy.data.remote.dto.EdgeConnectionResponseD
 import com.kiniot.uflex.features.therapy.data.remote.dto.InitiateSessionRequestDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.ReportPainRequestDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.SessionProgressResponseDto
+import com.kiniot.uflex.features.therapy.data.remote.dto.SessionSummaryResponseDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.TherapySessionResponseDto
 import okhttp3.ResponseBody
 import retrofit2.Response
@@ -56,6 +57,9 @@ interface TherapyApiService {
 
     @GET("therapy-sessions/{id}/progress")
     suspend fun getProgress(@Path("id") sessionId: String): Response<SessionProgressResponseDto>
+
+    @GET("therapy-sessions/{id}/summary")
+    suspend fun getSessionSummary(@Path("id") sessionId: String): Response<SessionSummaryResponseDto>
 
     /** Report a pain level (0-10). Backend returns an empty 200. */
     @PATCH("therapy-sessions/{id}/pain")

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_title">Progress History</string>
+    <string name="history_subtitle">A local record of your completed therapy sessions.</string>
+    <string name="history_rom_title">ROM evolution</string>
+    <string name="history_no_rom_title">No ROM data yet</string>
+    <string name="history_no_rom_body">Completed sessions will appear here once the device reports achieved ROM.</string>
+    <string name="history_rom_sessions_count">%1$d completed sessions with ROM data</string>
+    <string name="history_correct_reps_label">Correct reps</string>
+    <string name="history_improvement_label">Total improvement</string>
+    <string name="history_percent_value">%1$d%%</string>
+    <string name="history_not_available">--</string>
+    <string name="history_recent_sessions_title">Recent sessions</string>
+    <string name="history_session_completed">Completed session</string>
+    <string name="history_session_rom">Average ROM: %1$d°</string>
+    <string name="history_session_no_rom">Average ROM: not available</string>
+    <string name="history_session_reps">Correct reps: %1$d/%2$d</string>
+    <string name="history_session_pain">Pain reported: %1$d/10</string>
+    <string name="history_session_compensations">Compensatory movements: %1$d</string>
+    <string name="history_session_review">Review</string>
+    <string name="history_empty_title">No completed sessions yet</string>
+    <string name="history_empty_body">Your history will start after you finish a therapy session.</string>
+    <string name="history_load_error">History could not be loaded</string>
+    <string name="history_load_error_body">Try opening this tab again in a moment.</string>
+</resources>

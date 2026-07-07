@@ -10,6 +10,7 @@ import com.kiniot.uflex.features.therapy.data.remote.dto.EdgeConnectionResponseD
 import com.kiniot.uflex.features.therapy.data.remote.dto.InitiateSessionRequestDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.ReportPainRequestDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.SessionProgressResponseDto
+import com.kiniot.uflex.features.therapy.data.remote.dto.SessionSummaryResponseDto
 import com.kiniot.uflex.features.therapy.data.remote.dto.TherapySessionResponseDto
 import javax.inject.Inject
 
@@ -22,6 +23,7 @@ interface TherapyRemoteDataSource {
     suspend fun cancel(sessionId: String, reason: String): AppResult<TherapySessionResponseDto>
     suspend fun startSerie(sessionId: String, serieId: String): AppResult<Unit>
     suspend fun getProgress(sessionId: String): AppResult<SessionProgressResponseDto>
+    suspend fun getSessionSummary(sessionId: String): AppResult<SessionSummaryResponseDto>
     suspend fun reportPain(sessionId: String, painLevel: Int): AppResult<Unit>
     suspend fun finalize(sessionId: String): AppResult<TherapySessionResponseDto>
     suspend fun getEdgeConnection(): AppResult<EdgeConnectionResponseDto>
@@ -58,6 +60,9 @@ class TherapyRemoteDataSourceImpl @Inject constructor(
 
     override suspend fun getProgress(sessionId: String): AppResult<SessionProgressResponseDto> =
         safeApiCaller.execute { apiService.getProgress(sessionId) }
+
+    override suspend fun getSessionSummary(sessionId: String): AppResult<SessionSummaryResponseDto> =
+        safeApiCaller.execute { apiService.getSessionSummary(sessionId) }
 
     override suspend fun reportPain(sessionId: String, painLevel: Int): AppResult<Unit> =
         safeApiCaller.executeNoContent { apiService.reportPain(sessionId, ReportPainRequestDto(painLevel)) }

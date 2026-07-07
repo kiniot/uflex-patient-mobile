@@ -4,6 +4,7 @@ import com.kiniot.uflex.core.result.AppResult
 import com.kiniot.uflex.features.therapy.domain.model.DailySchedule
 import com.kiniot.uflex.features.therapy.domain.model.LiveRepEvent
 import com.kiniot.uflex.features.therapy.domain.model.SessionProgress
+import com.kiniot.uflex.features.therapy.domain.model.SessionSummary
 import com.kiniot.uflex.features.therapy.domain.model.TherapySession
 import com.kiniot.uflex.features.therapy.domain.repository.TherapyRepository
 import javax.inject.Inject
@@ -48,6 +49,11 @@ class StartSerieUseCase @Inject constructor(private val repository: TherapyRepos
 class GetProgressUseCase @Inject constructor(private val repository: TherapyRepository) {
     suspend operator fun invoke(sessionId: String): AppResult<SessionProgress> =
         repository.getProgress(sessionId)
+}
+
+class GetSessionSummaryUseCase @Inject constructor(private val repository: TherapyRepository) {
+    suspend operator fun invoke(sessionId: String): AppResult<SessionSummary> =
+        repository.getSessionSummary(sessionId)
 }
 
 class ReportPainUseCase @Inject constructor(private val repository: TherapyRepository) {

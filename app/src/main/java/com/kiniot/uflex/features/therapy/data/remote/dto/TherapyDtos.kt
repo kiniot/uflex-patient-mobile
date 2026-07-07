@@ -69,3 +69,21 @@ data class SessionProgressResponseDto(
     val requiresClinicalReview: Boolean? = null,
     val seriesProgress: List<SerieProgressResponseDto> = emptyList()
 )
+
+@Serializable
+data class SessionSummaryResponseDto(
+    val sessionId: String? = null,
+    val patientId: String? = null,
+    val totalSeries: Int? = null,
+    val completedSeries: Int? = null,
+    val totalRepetitions: Int? = null,
+    val goodRepetitions: Int? = null,
+    val incompleteRepetitions: Int? = null,
+    val unsafeRepetitions: Int? = null,
+    val averageAchievedRom: Double? = null,
+    val painLevel: Int? = null,
+    val requiresClinicalReview: Boolean? = null,
+    val compensatoryMovementsDetected: Int? = null,
+    val startedAt: String? = null,
+    val finalizedAt: String? = null
+)

@@ -11,6 +11,7 @@ import com.kiniot.uflex.features.therapy.data.remote.dto.InitiateSessionRequestD
 import com.kiniot.uflex.features.therapy.domain.model.DailySchedule
 import com.kiniot.uflex.features.therapy.domain.model.LiveRepEvent
 import com.kiniot.uflex.features.therapy.domain.model.SessionProgress
+import com.kiniot.uflex.features.therapy.domain.model.SessionSummary
 import com.kiniot.uflex.features.therapy.domain.model.TherapySession
 import com.kiniot.uflex.features.therapy.domain.repository.TherapyRepository
 import javax.inject.Inject
@@ -74,6 +75,12 @@ class TherapyRepositoryImpl @Inject constructor(
 
     override suspend fun getProgress(sessionId: String): AppResult<SessionProgress> =
         when (val result = remoteDataSource.getProgress(sessionId)) {
+            is AppResult.Success -> AppResult.Success(result.data.toDomain())
+            is AppResult.Error -> result
+        }
+
+    override suspend fun getSessionSummary(sessionId: String): AppResult<SessionSummary> =
+        when (val result = remoteDataSource.getSessionSummary(sessionId)) {
             is AppResult.Success -> AppResult.Success(result.data.toDomain())
             is AppResult.Error -> result
         }

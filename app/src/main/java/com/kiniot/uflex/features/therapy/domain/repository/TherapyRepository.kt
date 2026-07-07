@@ -4,6 +4,7 @@ import com.kiniot.uflex.core.result.AppResult
 import com.kiniot.uflex.features.therapy.domain.model.DailySchedule
 import com.kiniot.uflex.features.therapy.domain.model.LiveRepEvent
 import com.kiniot.uflex.features.therapy.domain.model.SessionProgress
+import com.kiniot.uflex.features.therapy.domain.model.SessionSummary
 import com.kiniot.uflex.features.therapy.domain.model.TherapySession
 import kotlinx.coroutines.flow.Flow
 
@@ -31,6 +32,8 @@ interface TherapyRepository {
     suspend fun startSerie(sessionId: String, serieId: String): AppResult<Unit>
 
     suspend fun getProgress(sessionId: String): AppResult<SessionProgress>
+
+    suspend fun getSessionSummary(sessionId: String): AppResult<SessionSummary>
 
     suspend fun reportPain(sessionId: String, painLevel: Int): AppResult<Unit>
 
