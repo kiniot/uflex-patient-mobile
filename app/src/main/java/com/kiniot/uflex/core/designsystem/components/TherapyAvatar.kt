@@ -273,7 +273,7 @@ private fun DrawScope.drawAvatar(
 
     drawLimb(rightShoulder, elbow, limbW, skin, skinShadow, skinHighlight, depth)
     drawLimb(elbow, wrist, limbW * 0.92f, skin, skinShadow, skinHighlight, depth)
-    drawHand(wrist, handSwing, handAxialDeg, limbW, skin, skinShadow, mirror = true)
+    drawHand(wrist, handSwing + 180f, handAxialDeg, limbW, skin, skinShadow)
 
     // small joint caps so the articulation reads as a joint, not a bend
     drawCircle(skinHighlight, limbW * 0.34f, elbow)
