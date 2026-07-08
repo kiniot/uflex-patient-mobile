@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Entry CTA (on the Exercises active-plan hero) -->
+    <string name="therapy_start_today">Start today\'s session</string>
+
+    <!-- Preparation flow -->
+    <string name="therapy_prep_title">Session</string>
+    <string name="therapy_prep_back">Back</string>
+
+    <string name="therapy_no_routine_title">No session today</string>
+    <string name="therapy_no_routine_subtitle">You don\'t have a routine scheduled for today.</string>
+    <string name="therapy_no_device_title">No device assigned</string>
+    <string name="therapy_no_device_subtitle">Ask your therapist to assign a uFlex kit to you.</string>
+
+    <string name="therapy_summary_title">Today\'s session</string>
+    <string name="therapy_summary_detail">%1$d exercises · about %2$d min</string>
+    <string name="therapy_summary_device">Kit: %1$s</string>
+    <string name="therapy_begin">Begin</string>
+
+    <string name="therapy_resume_title">Session in preparation</string>
+    <string name="therapy_resume_subtitle">You have a session ready to continue.</string>
+    <string name="therapy_continue">Continue</string>
+
+    <string name="therapy_initiating">Preparing your session…</string>
+    <string name="therapy_starting">Starting…</string>
+
+    <string name="therapy_sensors_title">Place the sensors</string>
+    <string name="therapy_sensors_checkbox">I\'ve placed the sensors</string>
+    <string name="therapy_start">Start session</string>
+
+    <string name="therapy_started_title">Session started!</string>
+    <string name="therapy_started_connected">Your kit is connected and your session is running.</string>
+    <string name="therapy_started_disconnected">Your session is running, but your kit isn\'t connected. Turn it on and reconnect.</string>
+    <string name="therapy_reconnect">Reconnect kit</string>
+    <string name="therapy_done">Done</string>
+
+    <string name="therapy_failed_title">Something went wrong</string>
+    <string name="therapy_retry">Try again</string>
+    <string name="therapy_cancel_session">Cancel session</string>
+    <string name="therapy_permission_needed">Bluetooth permissions are required to connect.</string>
+
+    <!-- BLE connection states -->
+    <string name="ble_state_scanning">Looking for your kit…</string>
+    <string name="ble_state_connecting">Connecting…</string>
+    <string name="ble_state_confirming">Confirming the device…</string>
+    <string name="ble_state_connected">Connected</string>
+    <string name="ble_state_disconnected">Disconnected</string>
+
+    <!-- Execution flow (Phase 3) -->
+    <string name="therapy_exec_continue">Start exercises</string>
+    <string name="therapy_exec_title">In session</string>
+    <string name="therapy_exec_serie_progress">Exercise %1$d of %2$d</string>
+    <string name="therapy_exec_reps">%1$d / %2$d reps</string>
+    <string name="therapy_exec_start_serie">Start exercise</string>
+    <string name="therapy_exec_upcoming_label">Next exercise</string>
+    <string name="therapy_exec_current_exercise_label">Current exercise</string>
+    <string name="therapy_exec_upcoming_title">Review the movement</string>
+    <string name="therapy_exec_upcoming_body">Watch the movement, then get into the reference position before calibrating.</string>
+    <string name="therapy_exec_current_exercise_body">Follow the prescribed joint and movement while keeping the kit connected.</string>
+    <string name="therapy_exec_video_unavailable">No video available for this exercise</string>
+    <string name="therapy_exec_calibrate_title">Get in position</string>
+    <string name="therapy_exec_calibrate_body">Fully extend your arm and hold still — this sets your starting point.</string>
+    <string name="therapy_exec_calibrate_confirm">Calibrate and start</string>
+    <string name="therapy_exec_calibrating">Calibrating… hold the position</string>
+    <string name="therapy_exec_running">Exercise in progress</string>
+    <string name="therapy_exec_waiting">Ready for the next exercise</string>
+    <string name="therapy_exec_all_done">All exercises completed</string>
+    <string name="therapy_exec_angle">Live angle</string>
+    <string name="therapy_exec_degrees">%1$d°</string>
+    <string name="therapy_exec_actuators">Actuators</string>
+    <string name="therapy_exec_kit_feedback">Kit feedback</string>
+    <string name="therapy_exec_led">LED</string>
+    <string name="therapy_exec_buzzer">Buzzer</string>
+    <string name="therapy_exec_disconnected_banner">Kit disconnected — live readings paused.</string>
+    <string name="therapy_exec_report_pain">Report pain</string>
+    <string name="therapy_exec_pain_title">Pain level?</string>
+    <string name="therapy_exec_pain_subtitle">0 = no pain, 10 = worst</string>
+    <string name="therapy_exec_pain_send">Send</string>
+    <string name="therapy_exec_cancel">Cancel</string>
+    <string name="therapy_exec_pain_reported">Pain reported</string>
+    <string name="therapy_exec_finalize">Finish session</string>
+    <string name="therapy_exec_finished">Session completed!</string>
+    <string name="therapy_exec_terminate_title">Terminate session?</string>
+    <string name="therapy_exec_terminate_body">Your current session will be cancelled and your kit will stop. You can start a new session later.</string>
+    <string name="therapy_exec_terminate_confirm">Terminate</string>
+
+    <!-- BLE failures -->
+    <string name="ble_fail_device_not_found">Couldn\'t find your kit. Make sure it\'s on and nearby.</string>
+    <string name="ble_fail_connection_lost">The connection was lost.</string>
+    <string name="ble_fail_identity_mismatch">This isn\'t the kit assigned to you.</string>
+    <string name="ble_fail_missing_service">The kit doesn\'t expose the expected service.</string>
+    <string name="ble_fail_bluetooth_unavailable">Bluetooth is unavailable.</string>
+    <string name="ble_fail_permission_denied">Bluetooth permission was denied.</string>
+    <string name="ble_fail_unknown">Couldn\'t connect to your kit.</string>
+</resources>

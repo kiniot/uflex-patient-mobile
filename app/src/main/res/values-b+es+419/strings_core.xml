@@ -8,4 +8,5 @@
     <string name="core_error_conflict">Ya existe un registro con esos datos.</string>
     <string name="core_error_server">Ocurrió un problema en el servidor. Intenta más tarde.</string>
     <string name="core_error_unknown">Ocurrió un error inesperado.</string>
+    <string name="splash_tagline">Rehabilitación en movimiento</string>
 </resources>

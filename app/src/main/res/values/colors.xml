@@ -7,4 +7,7 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <!-- Native splash (Android 12 SplashScreen API): brand deep teal + white icon circle. -->
+    <color name="brand_splash_bg">#0C6780</color>
+    <color name="brand_splash_icon_bg">#FFFFFFFF</color>
 </resources>
