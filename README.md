@@ -158,6 +158,10 @@ Latin American Spanish lives under `res/values-b+es+419/`.
 
 - [Architecture Guide](docs/ARCHITECTURE.md)
 - [Setup Guide](docs/SETUP.md)
+- [E2E Testing Runbook](docs/E2E-TESTING.md) — run the full kit→edge→backend→mobile loop from scratch
+- [Execution Contract](docs/EXECUTION-CONTRACT.md) — authoritative cross-repo design & status
+- [Mobile Progress](docs/PROGRESS.md)
+- [Next Steps](docs/NEXT-STEPS.md)
 - [Agent / Operational Notes](AGENTS.md)
 
 ---

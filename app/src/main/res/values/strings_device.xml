@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Empty / check states -->
+    <string name="device_none_title">No sensor assigned yet</string>
+    <string name="device_none_subtitle">Your therapist will assign a uFlex sensor to your account. It will show up here.</string>
+    <string name="device_check_failed_title">We couldn\'t check your sensor</string>
+    <string name="device_retry">Retry</string>
+
+    <!-- Landing / identity -->
+    <string name="device_landing_label">YOUR SENSOR</string>
+    <string name="device_cta_pair">Link sensor</string>
+    <string name="device_cta_reconnect">Reconnect sensor</string>
+    <string name="device_reconnect_banner">Your sensor disconnected.</string>
+    <string name="device_battery_last_known">Battery (last reading)</string>
+    <string name="device_battery_value">%1$d%%</string>
+    <string name="device_calibration_valid">Calibrated</string>
+    <string name="device_calibration_needs">Needs calibration</string>
+    <string name="device_calibration_unknown">Calibration unknown</string>
+    <string name="device_conn_connected">Connected</string>
+    <string name="device_conn_disconnected">Disconnected</string>
+    <string name="device_conn_connecting">Linking…</string>
+
+    <!-- Wizard step 1 -->
+    <string name="device_step1_of">Step 1 of 2</string>
+    <string name="device_step1_title">Turn on your sensor</string>
+    <string name="device_step1_subtitle">Make sure the light is blinking softly.</string>
+    <string name="device_step_next">Next</string>
+    <string name="device_step_cancel">Cancel</string>
+
+    <!-- Wizard step 2 -->
+    <string name="device_step2_of">Step 2 of 2</string>
+    <string name="device_step2_title">Linking…</string>
+    <string name="device_step2_subtitle">We\'re setting up your secure connection.</string>
+    <string name="device_connecting_hint">Keep your phone close to the sensor until it finishes.</string>
+
+    <!-- Connected -->
+    <string name="device_connected_title">Sensor connected</string>
+    <string name="device_connected_subtitle">Your device is ready and synced.</string>
+    <string name="device_disconnect">Disconnect</string>
+    <string name="device_liveness_receiving">Receiving data</string>
+    <string name="device_kit_status_ready">Sensor ready</string>
+    <string name="device_kit_status_syncing">Syncing with phone</string>
+    <string name="device_kit_status_calibrating">Calibrating</string>
+    <string name="device_kit_status_waiting_context">Waiting for session</string>
+    <string name="device_kit_status_safety_alert">Safety alert</string>
+    <string name="device_kit_status_error">Sensor error</string>
+    <string name="device_kit_status_unknown">Sensor status unavailable</string>
+
+    <!-- Permissions / Bluetooth -->
+    <string name="device_perm_denied">Bluetooth permission is needed to link your sensor.</string>
+    <string name="device_perm_grant">Grant permission</string>
+    <string name="device_bt_off_hint">Turn on Bluetooth to continue.</string>
+    <string name="device_bt_enable">Turn on Bluetooth</string>
+
+    <!-- Connection failure reasons -->
+    <string name="device_error_device_not_found">We couldn\'t find your sensor. Make sure it\'s on and nearby.</string>
+    <string name="device_error_connection_lost">The connection dropped. Let\'s try again.</string>
+    <string name="device_error_identity_mismatch">This sensor doesn\'t match the one assigned to you.</string>
+    <string name="device_error_missing_service">Your sensor didn\'t respond as expected.</string>
+    <string name="device_error_bluetooth_unavailable">Bluetooth is off or unavailable.</string>
+    <string name="device_error_permission_denied">Bluetooth permission was denied.</string>
+    <string name="device_error_unknown">Something went wrong. Please try again.</string>
+</resources>

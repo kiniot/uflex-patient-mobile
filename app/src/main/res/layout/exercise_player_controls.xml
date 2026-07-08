@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Minimal Media3 controller: only the play/pause toggle (no seek bar, no rewind/forward). -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageButton
+        android:id="@id/exo_play_pause"
+        style="@style/ExoStyledControls.Button.Center.PlayPause"
+        android:layout_gravity="center" />
+</FrameLayout>

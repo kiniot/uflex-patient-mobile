@@ -1,4 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="home_placeholder">Home coming soon</string>
+    <string name="home_greeting_subtitle">Today is a good day to improve</string>
+    <string name="home_greeting_morning">Good morning, %1$s</string>
+    <string name="home_greeting_afternoon">Good afternoon, %1$s</string>
+    <string name="home_greeting_evening">Good evening, %1$s</string>
+    <string name="home_greeting_generic">Welcome back</string>
+
+    <string name="home_progress_label">Plan progress</string>
+    <string name="home_progress_day_of">Day %1$d of %2$d</string>
+    <string name="home_progress_no_dates">Your plan is active</string>
+    <string name="home_today_stats">Today: %1$d series · ~%2$d min</string>
+
+    <string name="home_today_title">Today\'s exercises</string>
+    <plurals name="home_today_pending">
+        <item quantity="one">%1$d pending</item>
+        <item quantity="other">%1$d pending</item>
+    </plurals>
+
+    <string name="home_rest_title">Rest day</string>
+    <string name="home_rest_subtitle">No routine scheduled for today. Rest and recover.</string>
+    <string name="home_schedule_unknown">We couldn\'t determine today\'s routine.</string>
+    <string name="home_error_title">We couldn\'t load your home</string>
 </resources>

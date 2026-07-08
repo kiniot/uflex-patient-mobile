@@ -32,10 +32,12 @@ android {
     buildTypes {
         debug {
             buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/api/v1/\"")
+            buildConfigField("String", "EDGE_BASE_URL", "\"http://10.0.2.2:5050/\"")
             buildConfigField("Boolean", "LOG_HTTP", "true")
         }
         release {
             buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/api/v1/\"")
+            buildConfigField("String", "EDGE_BASE_URL", "\"http://10.0.2.2:5050/\"")
             buildConfigField("Boolean", "LOG_HTTP", "false")
             isMinifyEnabled = false
             proguardFiles(
@@ -63,6 +65,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -93,6 +96,7 @@ dependencies {
     // OkHttp
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
+    implementation(libs.okhttp.sse)
     // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
@@ -112,6 +116,14 @@ dependencies {
     // Serialization JSON
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.retrofit.kotlin.serialization)
+    // Nordic Kotlin BLE Library
+    implementation(libs.nordic.ble.scanner)
+    implementation(libs.nordic.ble.client)
+    implementation(libs.nordic.ble.client.android)
+    implementation(libs.nordic.ble.core)
+    // Media3 (ExoPlayer) for exercise video playback
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
     // Desugaring
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 }

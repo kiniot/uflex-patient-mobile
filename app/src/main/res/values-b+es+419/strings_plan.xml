@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Exercises tab -->
+    <string name="plan_active_label">Plan activo</string>
+    <string name="plan_scheduled_title">Programados</string>
+    <string name="plan_scheduled_starts">Comienza %1$s</string>
+    <string name="plan_routine_count">%1$d rutinas</string>
+    <string name="plan_exercise_count">%1$d ejercicios</string>
+    <string name="plan_empty_title">Sin plan activo</string>
+    <string name="plan_empty_subtitle">Cuando tu terapeuta active un plan, aparecerá aquí.</string>
+    <string name="plan_error_title">No pudimos cargar tu plan</string>
+    <string name="plan_retry">Reintentar</string>
+
+    <!-- Plan status -->
+    <string name="plan_status_scheduled">Programado</string>
+    <string name="plan_status_active">Activo</string>
+    <string name="plan_status_completed">Completado</string>
+    <string name="plan_status_canceled">Cancelado</string>
+    <string name="plan_status_unknown">Desconocido</string>
+
+    <!-- Dosage -->
+    <string name="plan_dosage_reps">%1$d reps</string>
+    <string name="plan_dosage_rom">%1$d°</string>
+    <string name="plan_dosage_seconds">%1$d s</string>
+
+    <!-- Body parts -->
+    <string name="bodypart_elbow">Codo</string>
+    <string name="bodypart_wrist">Muñeca</string>
+    <string name="bodypart_unknown">Otro</string>
+
+    <!-- Movements -->
+    <string name="movement_pronation">Pronación</string>
+    <string name="movement_supination">Supinación</string>
+    <string name="movement_flexion">Flexión</string>
+    <string name="movement_extension">Extensión</string>
+    <string name="movement_unknown">Movimiento</string>
+
+    <!-- Exercise detail -->
+    <string name="exercise_detail_title">Ejercicio</string>
+    <string name="exercise_detail_back">Atrás</string>
+    <string name="exercise_detail_description">Descripción</string>
+    <string name="exercise_detail_error_title">No pudimos cargar este ejercicio</string>
+    <string name="exercise_video_unavailable">No hay video disponible para este ejercicio</string>
+</resources>
