@@ -17,6 +17,23 @@ This repository contains the **uFlex patient mobile app**, a native Android appl
 
 The app is part of the broader **uFlex** ecosystem (embedded firmware, edge gateway, REST API, clinic web, and this patient app), and focuses specifically on the **patient-facing** experience.
 
+## Patient Journey
+
+<p align="center">
+  <img src="docs/screenshots/splash.png" alt="uFlex mobile splash screen" width="30%">
+  <img src="docs/screenshots/home.png" alt="Patient home and active treatment plan" width="30%">
+  <img src="docs/screenshots/device-connected.png" alt="uFlex sensor kit connected to the patient app" width="30%">
+</p>
+
+The patient starts from the prescribed plan, pairs the assigned sensor kit, and verifies that all three wearable sensing points are ready.
+
+<p align="center">
+  <img src="docs/screenshots/session-in-progress.png" alt="Guided exercise with live joint angle and kit feedback" width="38%">
+  <img src="docs/screenshots/session-completed.png" alt="Completed rehabilitation session summary" width="38%">
+</p>
+
+During therapy, the app combines a live joint avatar, repetition progress, exercise guidance, and immediate kit feedback. At completion it summarizes the captured session for the patient and clinical workflow.
+
 ---
 
 ## Overview
