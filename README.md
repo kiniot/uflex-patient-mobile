@@ -28,11 +28,17 @@ The app is part of the broader **uFlex** ecosystem (embedded firmware, edge gate
 The patient starts from the prescribed plan, pairs the assigned sensor kit, and verifies that all three wearable sensing points are ready.
 
 <p align="center">
-  <img src="docs/screenshots/session-in-progress.png" alt="Guided exercise with live joint angle and kit feedback" width="38%">
-  <img src="docs/screenshots/session-completed.png" alt="Completed rehabilitation session summary" width="38%">
+  <img src="docs/screenshots/history.png" alt="Patient rehabilitation progress history and range-of-motion evolution" width="38%">
 </p>
 
-During therapy, the app combines a live joint avatar, repetition progress, exercise guidance, and immediate kit feedback. At completion it summarizes the captured session for the patient and clinical workflow.
+Progress History keeps completed sessions and range-of-motion evolution available to the patient between therapy days.
+
+<p align="center">
+  <img src="docs/screenshots/session-in-progress.png" alt="Guided exercise with live joint angle and kit feedback" width="38%">
+  <img src="docs/screenshots/session-unsafe.png" alt="Live safety alert after exceeding the prescribed joint angle" width="38%">
+</p>
+
+During therapy, the app combines a live joint avatar, repetition progress, exercise guidance, and immediate kit feedback. When the prescribed safety threshold is exceeded, the interface raises a visible alert and activates the wearable buzzer.
 
 ---
 
